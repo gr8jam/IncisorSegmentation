@@ -18,8 +18,8 @@ class ShapesViewer:
         plt.grid()
 
         self.handle_ref = ShapeHandle()
-        self.handle_ref.lm_loc = plt.plot([], [], 'k.', markersize=20)[0]
-        self.handle_ref.border = plt.plot([], [], 'b-', linewidth=2)[0]
+        self.handle_ref.lm_loc = plt.plot([], [], 'k.', markersize=10)[0]
+        self.handle_ref.border = plt.plot([], [], 'b-', linewidth=3)[0]
         # self.handle_ref.center = plt.plot([], [], 'b.', markersize=10)[0]
         self.shapes_ref = shapes_ref
 
@@ -28,7 +28,7 @@ class ShapesViewer:
 
         for shape in self.shapes_list:
             handle = ShapeHandle()
-            handle.lm_loc = plt.plot([], [], 'k.', markersize=20)[0]
+            handle.lm_loc = plt.plot([], [], 'k.', markersize=10)[0]
             handle.border = plt.plot([], [], 'r--')[0]
             # handle.lm_loc = plt.plot(shape.lm_loc[0, :], shape.lm_org[1, :], 'k.', markersize=20)[0]
             # handle.border = plt.plot(shape.lm_loc[0, :], shape.lm_loc[1, :], 'r--')[0]
@@ -61,5 +61,5 @@ class ShapesViewer:
     def update_shapes_all(self):
         for idx in range(len(self.handle_list)):
             self.update_shape(self.handle_list[idx], self.shapes_list[idx])
-            plt.waitforbuttonpress()
+            # plt.waitforbuttonpress()
             # self.update_shapes_ref()

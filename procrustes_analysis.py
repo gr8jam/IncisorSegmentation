@@ -24,7 +24,24 @@ if __name__ == '__main__':
     incisors = load_incisors()
     myLib.toc()
 
+    shape_ref = incisors[0]
+    incisors = incisors[1:]
+
+    shapes_viewer = ShapesViewer(incisors, shape_ref)
+
+    shapes_viewer.update_shapes_ref()
+    shapes_viewer.update_shapes_all()
+
+    plt.waitforbuttonpress()
+    for i in range(len(incisors)):
+        incisors[i].set_landmarks_theta(shape_ref.lm_loc)
+
+    shapes_viewer.update_shapes_all()
+    shapes_viewer.update_shapes_ref()
+
+    print "almost end..."
+    plt.waitforbuttonpress()
+
     a = 10
-    print a
 
     print("=====================================")

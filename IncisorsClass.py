@@ -29,14 +29,14 @@ class IncisorShape(ObjectShape):
         del points
         del landmarks
 
-        self.path_radiograph = "Project Data/_Data/Radiographs/" + str(num_img).zfill(2) + ".tif"
-        self.radiograph = np.zeros((1, 1))
-        self.radiograph = cv2.imread(self.path_radiograph, 0)
-
-        self.path_segmentation = "Project Data/_Data/Segmentations/" + str(num_img).zfill(2) + "-" + str(
-            num_tth - 1) + ".png"
-        self.segmentation = np.zeros((1, 1))
-        self.segmentation = cv2.imread(self.path_segmentation, 0)
+        # self.path_radiograph = "Project Data/_Data/Radiographs/" + str(num_img).zfill(2) + ".tif"
+        # self.radiograph = np.zeros((1, 1))
+        # self.radiograph = cv2.imread(self.path_radiograph, 0)
+        #
+        # self.path_segmentation = "Project Data/_Data/Segmentations/" + str(num_img).zfill(2) + "-" + str(
+        #     num_tth - 1) + ".png"
+        # self.segmentation = np.zeros((1, 1))
+        # self.segmentation = cv2.imread(self.path_segmentation, 0)
 
     def show_radiograph(self, position):
         plt.figure()
@@ -71,8 +71,8 @@ class IncisorShape(ObjectShape):
 
 def load_incisors():
     incisors_list = []
-    for idx_radiograph in range(1, 15):
-        for idx_tooth in range(1, 9):
+    for idx_radiograph in range(1, 14):  # 1 - 14
+        for idx_tooth in range(1, 5):   # 1 - 8
             # plt.close('all')
             incisors_list.append(IncisorShape(idx_radiograph, idx_tooth))
     return incisors_list
