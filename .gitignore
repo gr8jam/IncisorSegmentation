@@ -1,0 +1,8 @@
+# Let Git know which file to ignore #
+# It's useful to ignore files that are not part of the project, #
+# like compiler genereted files, OS generated files...ect       #
+
+
+############
+# open/editing python file "
+*.pyc
