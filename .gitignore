@@ -6,3 +6,4 @@
 ############
 # open/editing python file "
 *.pyc
+*.idea/
