@@ -1,10 +1,10 @@
-import cv2
+# import cv2
 # import cv2.cv as cv
 import numpy as np
 from matplotlib import pyplot as plt
 
 import os
-import sys
+# import sys
 
 
 def ensure_dir(file_path):
@@ -72,3 +72,20 @@ def move_figure(position="top-right", manual_position=None):
             mgr.window.setGeometry(px / 2 + d, py / 2 + 5 * d, px / 2 - 2 * d, py / 2 - 4 * d)
     else:
         mgr.window.setGeometry(manual_position[0], manual_position[1], manual_position[2], manual_position[3])
+
+
+def tic():
+    #Homemade version of matlab tic and toc functions
+    import time
+    global startTime_for_tictoc
+    startTime_for_tictoc = time.time()
+
+
+def toc():
+    import time
+    if 'startTime_for_tictoc' in globals():
+        print "Elapsed time is " + str(time.time() - startTime_for_tictoc) + " seconds."
+    else:
+        print "Toc: start time not set"
+
+
