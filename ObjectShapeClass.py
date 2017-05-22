@@ -43,7 +43,7 @@ class ObjectShape:
         numerator = np.sum(a)
         denominator = np.sum(b)
         self.theta = np.arctan2(numerator, denominator) * 180 / np.pi
-        self.lm_loc = self.get_landmarks_local()
+        self.lm_loc = np.dot(myLib.getRotMatrix(self.theta), self.lm_loc)
 
 
 def create_shapes(num, lm_org):
@@ -51,7 +51,7 @@ def create_shapes(num, lm_org):
 
     np.random.seed(0)
 
-    angle = np.array([-40, -30, -20, 10, 20, 30, 40])
+    angle = np.array([0, 45, -40, -30, -20, 10, 20, 30, 40])
 
     for i in range(num):
         lm_ref = np.copy(lm_org)

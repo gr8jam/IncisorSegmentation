@@ -63,3 +63,7 @@ class ShapesViewer:
             self.update_shape(self.handle_list[idx], self.shapes_list[idx])
             # plt.waitforbuttonpress()
             # self.update_shapes_ref()
+
+    def update_shape_idx(self, shape_idx):
+        self.update_shape(self.handle_list[shape_idx], self.shapes_list[shape_idx])
+
