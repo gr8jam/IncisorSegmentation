@@ -13,14 +13,22 @@ from IncisorsClass import load_incisors
 
 
 def procrustes_analysis(shapes_list):
-
     # Arbitrarily choose a reference shape (typically by selecting it among the available instances)
-    np.random.seed(5)
+    np.random.seed(2)
     idx = np.random.randint(0, len(shapes_list))
-    idx = 0
+
+    print "idx = " + str(idx)
     shape_ref = shapes_list[idx]
+    # print "r = " + str(shape_ref.num_image)
+    # print "t = " + str(shape_ref.num_tooth)
+    # shape_ref.show_radiograph(np.array([800, 200]))
 
     shapes_viewer = ShapesViewer(shapes_list, shape_ref)
+
+    shapes_viewer.update_shapes_ref()
+    for shape_idx in range(len(shapes_list)):
+        shapes_viewer.update_shape_idx(shape_idx)
+    plt.waitforbuttonpress(0.5)
 
     # shape_mean = ObjectShape(np.zeros_like(shape_ref.lm_loc))
     lm_mean = np.zeros_like(shape_ref.lm_loc)
@@ -35,12 +43,12 @@ def procrustes_analysis(shapes_list):
 
         # Superimpose all instances to current reference shape
         for shape_idx in range(len(shapes_list)):
+            # shapes_viewer.update_shape_idx(shape_idx)
             shapes_list[shape_idx].set_landmarks_theta(shape_ref.lm_loc)
             lm_mean = np.dstack((lm_mean, shapes_list[shape_idx].lm_loc))
             shapes_viewer.update_shape_idx(shape_idx)
 
         shapes_viewer.update_shapes_ref()
-        # plt.waitforbuttonpress()
 
         # Compute the mean shape of the current set of superimposed shapes
         lm_mean = lm_mean[:, :, 1:]
@@ -69,6 +77,11 @@ def procrustes_analysis(shapes_list):
             break
         iteration_cnt = iteration_cnt + 1
 
+    for shape in shapes_list:
+        shape.ssd = np.sum(np.square(shape_ref.lm_loc - shape.lm_loc)) / len(shapes_list)
+        print shape.ssd
+
+    return shape_ref
 
 
 if __name__ == '__main__':
@@ -90,26 +103,37 @@ if __name__ == '__main__':
     # shapes_viewer = ShapesViewer(incisors, shape_ref)
 
     # landmarksOrg = (np.array([[4,0,0],[0,0,1]])).astype(float)
-    # landmarksOrg = (np.array([[0,1,1,0],[0,0,1,1]])).astype(float)
+    # landmarksOrg = (np.array([[0, 5, 5, 0], [0, 0, 1, 1]])).astype(float)
     # landmarksOrg = (np.array([[-5, 5, 10, 5, -5, -10], [-5, -5, 0, 5, 5, 0]], dtype=float))  # Hexagon
-    # landmarksOrg = (np.array([[-5, -3, 3, 5, 7, 8, 10, 8, 7, 5, 3, -3, -5, -7, -8, -10, -8, -7],
-    #                           [-5, -5, -5, -5, -3, -2, 0, 2, 3, 5, 5, 5, 5, 3, 2, 0, -2, -3]], dtype=float))
+    landmarksOrg = (np.array([[-5, -3, 3, 5, 7, 8, 10, 8, 7, 5, 3, -3, -5, -7, -8, -10, -8, -7],
+                              [-5, -5, -5, -5, -3, -2, 0, 2, 3, 5, 5, 5, 5, 3, 2, 0, -2, -3]], dtype=float))
 
-    # landmarks_ref = np.copy(landmarksOrg)
-    # shapes = create_shapes(2, landmarks_ref)
+    landmarks_ref = np.copy(landmarksOrg)
+    # incisors = create_shapes(3, landmarks_ref)
 
-    procrustes_analysis(incisors)
-    # shapes_viewer.update_shapes_ref()
-    # shapes_viewer.update_shapes_all()
-    #
-    # plt.waitforbuttonpress()
-    # for i in range(len(incisors)):
-    #     incisors[i].set_landmarks_theta(shape_ref.lm_loc)
-    #
-    # shapes_viewer.update_shapes_all()
-    # shapes_viewer.update_shapes_ref()
+    incisor_ref = procrustes_analysis(incisors)
+
+    incisors_bad_lm = []
+    incisors_good_lm = []
+    for incisor in incisors:
+        if incisor.ssd > 0.04:
+            incisors_bad_lm.append(incisor)
+        else:
+            incisors_good_lm.append(incisor)
+
+    shape_viewer_good = ShapesViewer(incisors_good_lm, incisor_ref)
+    shape_viewer_good.update_shapes_ref()
+    shape_viewer_good.update_shapes_all()
+
+    shape_viewer_bad = ShapesViewer(incisors_bad_lm, incisor_ref)
+    shape_viewer_bad.update_shapes_ref()
+    shape_viewer_bad.update_shapes_all()
+
+    print "Bad incisors and their ssd: "
+    for incisor in incisors_bad_lm:
+        print incisor.ssd
 
     print "\nClick to finish process..."
-    plt.waitforbuttonpress()
+    plt.waitforbuttonpress(10)
 
     print("==========================")

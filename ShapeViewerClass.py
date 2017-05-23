@@ -7,6 +7,7 @@ class ShapeHandle:
         self.lm_loc = None
         self.border = None
         self.center = None
+        self.start = None
 
 
 class ShapesViewer:
@@ -17,23 +18,25 @@ class ShapesViewer:
         plt.axis('equal')
         plt.grid()
 
-        self.handle_ref = ShapeHandle()
-        self.handle_ref.lm_loc = plt.plot([], [], 'k.', markersize=10)[0]
-        self.handle_ref.border = plt.plot([], [], 'b-', linewidth=3)[0]
-        # self.handle_ref.center = plt.plot([], [], 'b.', markersize=10)[0]
-        self.shapes_ref = shapes_ref
-
         self.handle_list = []
         self.shapes_list = shapes_list
 
         for shape in self.shapes_list:
             handle = ShapeHandle()
-            handle.lm_loc = plt.plot([], [], 'k.', markersize=10)[0]
+            handle.lm_loc = plt.plot([], [], 'k.', markersize=5)[0]
             handle.border = plt.plot([], [], 'r--')[0]
+            handle.start = plt.plot([], [], 'g.', markersize=6)[0]
             # handle.lm_loc = plt.plot(shape.lm_loc[0, :], shape.lm_org[1, :], 'k.', markersize=20)[0]
             # handle.border = plt.plot(shape.lm_loc[0, :], shape.lm_loc[1, :], 'r--')[0]
             # handle.center = plt.plot(shape.lm_org[0, :], shape.lm_org[1, :], 'r.', markersize=10)[0]
             self.handle_list.append(handle)
+
+        self.handle_ref = ShapeHandle()
+        self.handle_ref.lm_loc = plt.plot([], [], 'k.', markersize=10)[0]
+        self.handle_ref.border = plt.plot([], [], 'b--', linewidth=3)[0]
+        self.handle_ref.start = plt.plot([], [], 'g.', markersize=11)[0]
+        # self.handle_ref.center = plt.plot([], [], 'b.', markersize=10)[0]
+        self.shapes_ref = shapes_ref
 
     def update_shape(self, handle, shape):
         # Update landmarks in local coordinate system
@@ -47,6 +50,10 @@ class ShapesViewer:
         # Update center
         # self.handle.center.set_xdata(shape.center[0, :])
         # self.handle.center.set_ydata(shape.center[1, :])
+
+        # Update first landmark position
+        handle.start.set_xdata(shape.lm_loc[0, 0])
+        handle.start.set_ydata(shape.lm_loc[1, 0])
 
         # recompute the ax.dataLim
         self.axes.relim()
@@ -63,6 +70,7 @@ class ShapesViewer:
             self.update_shape(self.handle_list[idx], self.shapes_list[idx])
             # plt.waitforbuttonpress()
             # self.update_shapes_ref()
+            print self.shapes_list[idx].ssd
 
     def update_shape_idx(self, shape_idx):
         self.update_shape(self.handle_list[shape_idx], self.shapes_list[shape_idx])
