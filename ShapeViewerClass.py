@@ -39,21 +39,23 @@ class ShapesViewer:
         self.shapes_ref = shapes_ref
 
     def update_shape(self, handle, shape):
+        s = shape.scale
+
         # Update landmarks in local coordinate system
-        handle.lm_loc.set_xdata(shape.lm_loc[0, :])
-        handle.lm_loc.set_ydata(shape.lm_loc[1, :])
+        handle.lm_loc.set_xdata(shape.lm_loc[0, :] * s)
+        handle.lm_loc.set_ydata(shape.lm_loc[1, :] * s)
 
         # Update border
-        handle.border.set_xdata(shape.lm_loc[0, :])
-        handle.border.set_ydata(shape.lm_loc[1, :])
+        handle.border.set_xdata(shape.lm_loc[0, :] * s)
+        handle.border.set_ydata(shape.lm_loc[1, :] * s)
 
         # Update center
-        # self.handle.center.set_xdata(shape.center[0, :])
-        # self.handle.center.set_ydata(shape.center[1, :])
+        # self.handle.center.set_xdata(shape.center[0, :] * s)
+        # self.handle.center.set_ydata(shape.center[1, :] * s)
 
         # Update first landmark position
-        handle.start.set_xdata(shape.lm_loc[0, 0])
-        handle.start.set_ydata(shape.lm_loc[1, 0])
+        handle.start.set_xdata(shape.lm_loc[0, 0] * s)
+        handle.start.set_ydata(shape.lm_loc[1, 0] * s)
 
         # recompute the ax.dataLim
         self.axes.relim()

@@ -7,10 +7,9 @@ import myLib
 import warnings
 
 from ObjectShapeClass import ObjectShape
-from ObjectShapeClass import create_shapes
+# from ObjectShapeClass import create_shapes
 from ShapeViewerClass import ShapesViewer
 from IncisorsClass import load_incisors
-
 
 def procrustes_analysis(shapes_list):
     # Arbitrarily choose a reference shape (typically by selecting it among the available instances)
@@ -32,12 +31,11 @@ def procrustes_analysis(shapes_list):
 
     # shape_mean = ObjectShape(np.zeros_like(shape_ref.lm_loc))
     lm_mean = np.zeros_like(shape_ref.lm_loc)
-    lm_mean_old = lm_mean
 
     iteration_max = 30
     iteration_cnt = 0
 
-    while (True):
+    while True:
         # Reset the the mean estimate of landmarks
         lm_mean = lm_mean * 0
 
@@ -45,7 +43,7 @@ def procrustes_analysis(shapes_list):
         for shape_idx in range(len(shapes_list)):
             # shapes_viewer.update_shape_idx(shape_idx)
             shapes_list[shape_idx].set_landmarks_theta(shape_ref.lm_loc)
-            lm_mean = np.dstack((lm_mean, shapes_list[shape_idx].lm_loc))
+            lm_mean = np.dstack((lm_mean, shapes_list[shape_idx].lm_loc * shapes_list[shape_idx].scale))
             shapes_viewer.update_shape_idx(shape_idx)
 
         shapes_viewer.update_shapes_ref()
@@ -67,7 +65,7 @@ def procrustes_analysis(shapes_list):
         shape_ref.theta = shape_mean.theta
 
         # End loop if sum of square distance change of mean shape is under certain threshold
-        if ssdc < 1e-15:
+        if ssdc < 1e-8:
             print("Procrustes analysis finished. Square distance change of mean shape was under certain threshold.")
             break
 
@@ -79,7 +77,7 @@ def procrustes_analysis(shapes_list):
 
     for shape in shapes_list:
         shape.ssd = np.sum(np.square(shape_ref.lm_loc - shape.lm_loc)) / len(shapes_list)
-        print shape.ssd
+        # print shape.ssd
 
     return shape_ref
 
@@ -97,18 +95,15 @@ if __name__ == '__main__':
     incisors = load_incisors()
     myLib.toc()
 
-    # shape_ref = incisors[0]
     # incisors = incisors[0:5]
-
-    # shapes_viewer = ShapesViewer(incisors, shape_ref)
 
     # landmarksOrg = (np.array([[4,0,0],[0,0,1]])).astype(float)
     # landmarksOrg = (np.array([[0, 5, 5, 0], [0, 0, 1, 1]])).astype(float)
     # landmarksOrg = (np.array([[-5, 5, 10, 5, -5, -10], [-5, -5, 0, 5, 5, 0]], dtype=float))  # Hexagon
-    landmarksOrg = (np.array([[-5, -3, 3, 5, 7, 8, 10, 8, 7, 5, 3, -3, -5, -7, -8, -10, -8, -7],
-                              [-5, -5, -5, -5, -3, -2, 0, 2, 3, 5, 5, 5, 5, 3, 2, 0, -2, -3]], dtype=float))
-
-    landmarks_ref = np.copy(landmarksOrg)
+    # landmarksOrg = (np.array([[-5, -3, 3, 5, 7, 8, 10, 8, 7, 5, 3, -3, -5, -7, -8, -10, -8, -7],
+    #                           [-5, -5, -5, -5, -3, -2, 0, 2, 3, 5, 5, 5, 5, 3, 2, 0, -2, -3]], dtype=float))
+    #
+    # landmarks_ref = np.copy(landmarksOrg)
     # incisors = create_shapes(3, landmarks_ref)
 
     incisor_ref = procrustes_analysis(incisors)
@@ -133,7 +128,10 @@ if __name__ == '__main__':
     for incisor in incisors_bad_lm:
         print incisor.ssd
 
+
+
+
     print "\nClick to finish process..."
-    plt.waitforbuttonpress(10)
+    plt.waitforbuttonpress()
 
     print("==========================")
