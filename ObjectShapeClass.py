@@ -20,8 +20,8 @@ class ObjectShape:
 
     def get_landmarks_center(self):
         k = np.size(self.lm_org, 1)
-        x = np.sum(self.lm_org[0, :]) / k
-        y = np.sum(self.lm_org[1, :]) / k
+        x = np.sum(self.lm_org[0, :]) / float(k)
+        y = np.sum(self.lm_org[1, :]) / float(k)
         return np.vstack((x, y))
 
     def get_landmarks_scale(self):
@@ -33,7 +33,7 @@ class ObjectShape:
     def get_landmarks_local(self):
         lm = (self.lm_org - self.center).astype(float)
         lm = (lm / self.scale.astype(float))
-        lm = np.dot(myLib.getRotMatrix(self.theta), lm)
+        # lm = np.dot(myLib.getRotMatrix(self.theta), lm)
         return lm
 
     def set_landmarks_theta(self, lm_ref):
@@ -43,7 +43,7 @@ class ObjectShape:
         b = self.lm_loc[0, :] * lm_ref[0, :] + self.lm_loc[1, :] * lm_ref[1, :]
         numerator = np.sum(a)
         denominator = np.sum(b)
-        self.theta = np.arctan2(numerator, denominator) * 180.0 / np.pi
+        self.theta = np.arctan2(numerator, denominator)
         self.lm_loc = np.dot(myLib.getRotMatrix(self.theta), self.lm_loc)
 
 
@@ -52,13 +52,13 @@ def create_shapes(num, lm_org):
 
     np.random.seed(0)
 
-    angle = np.array([0, 0, 0, 0, 45, -40, -30, -20, 10, 20, 30, 40])
+    angle = np.array([0, 0, 0, 0, 45, -40, -30, -20, 10, 20, 30, 40]) * np.pi / 180.0
 
     for i in range(num):
         lm_ref = np.copy(lm_org)
-        lm_ref = np.roll(lm_ref, i - 1, axis=1)
+        # lm_ref = np.roll(lm_ref, 1, axis=1)
         r, c = lm_ref.shape
-        lm = np.copy(lm_ref) + np.random.rand(r, c) * 0
+        lm = np.copy(lm_ref) + np.random.rand(r, c) * 0.5
         lm = myLib.scalePoints(lm, np.random.rand(1) * 3 - 1)
         lm = myLib.rotatePoints(lm, angle[i])
         lm = myLib.translatePoints(lm, np.random.rand(1) * 10 - 5, np.random.rand(1) * 10 - 5)

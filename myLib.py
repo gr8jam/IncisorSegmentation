@@ -14,7 +14,6 @@ def ensure_dir(file_path):
 
 def getRotMatrix(angle):
     ''' angle : float  - angle of rotation in deg '''
-    angle = angle * np.pi / 180.0
     rotMatrix = np.array([[np.cos(angle), -np.sin(angle)],
                           [np.sin(angle), np.cos(angle)]])
     return rotMatrix
