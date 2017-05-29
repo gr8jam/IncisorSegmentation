@@ -7,7 +7,7 @@ import myLib
 import warnings
 
 from ObjectShapeClass import ObjectShape
-# from ObjectShapeClass import create_shapes
+from ObjectShapeClass import create_shapes
 from ShapeViewerClass import ShapesViewer
 from IncisorsClass import load_incisors
 
@@ -36,8 +36,8 @@ def procrustes_analysis(shapes_list):
     iteration_cnt = 0
 
     while True:
-        # plt.waitforbuttonpress()
-        
+        plt.waitforbuttonpress()
+
         # Reset the the mean estimate of landmarks
         lm_mean = np.zeros_like(shape_ref.lm_loc, dtype=float)
 
@@ -86,6 +86,21 @@ def procrustes_analysis(shapes_list):
     return shape_ref
 
 
+def separate_good_bad_shape_fit(shapes_list):
+    shapes_list_good_fit = []
+    shapes_list_bad_fit = []
+    for shape in shapes_list:
+        if shape.ssd > 0.04:
+            shapes_list_bad_fit.append(shape)
+        else:
+            shapes_list_good_fit.append(shape)
+    return shapes_list_good_fit, shapes_list_bad_fit
+
+
+def print_shapes_fit(shapes_list):
+    for shape in shapes_list:
+        print shape.ssd
+
 if __name__ == '__main__':
     os.chdir(os.path.dirname(sys.argv[0]))
     warnings.filterwarnings("ignore", ".*GUI is implemented.*")
@@ -101,36 +116,22 @@ if __name__ == '__main__':
 
     # incisors = incisors[0:5]
 
-    # landmarksOrg = (np.array([[4,0,0],[0,0,1]])).astype(float)
-    # landmarksOrg = (np.array([[0, 5, 5, 0], [0, 0, 1, 1]])).astype(float)
-    # landmarksOrg = (np.array([[-5, 5, 10, 5, -5, -10], [-5, -5, 0, 5, 5, 0]], dtype=float))  # Hexagon
-    # landmarksOrg = (np.array([[-5, -3, 3, 5, 7, 8, 10, 8, 7, 5, 3, -3, -5, -7, -8, -10, -8, -7],
-    #                           [-5, -5, -5, -5, -3, -2, 0, 2, 3, 5, 5, 5, 5, 3, 2, 0, -2, -3]], dtype=float))
-    #
-    # landmarks_ref = np.copy(landmarksOrg)
-    # incisors = create_shapes(3, landmarks_ref)
+    incisors = create_shapes(6)
 
     incisor_ref = procrustes_analysis(incisors)
 
-    incisors_bad_lm = []
-    incisors_good_lm = []
-    for incisor in incisors:
-        if incisor.ssd > 0.04:
-            incisors_bad_lm.append(incisor)
-        else:
-            incisors_good_lm.append(incisor)
+    incisors_good_fit, incisors_bad_fit = separate_good_bad_shape_fit(incisors)
 
-    shape_viewer_good = ShapesViewer(incisors_good_lm, incisor_ref)
+    shape_viewer_good = ShapesViewer(incisors_good_fit, incisor_ref)
     shape_viewer_good.update_shapes_ref()
     shape_viewer_good.update_shapes_all()
 
-    shape_viewer_bad = ShapesViewer(incisors_bad_lm, incisor_ref)
+    shape_viewer_bad = ShapesViewer(incisors_bad_fit, incisor_ref)
     shape_viewer_bad.update_shapes_ref()
     shape_viewer_bad.update_shapes_all()
 
     print "Bad incisors and their ssd: "
-    for incisor in incisors_bad_lm:
-        print incisor.ssd
+    print_shapes_fit(incisors_bad_fit)
 
     print "\nClick to finish process..."
     plt.waitforbuttonpress()

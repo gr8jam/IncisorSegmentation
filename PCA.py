@@ -13,6 +13,7 @@ from ObjectShapeClass import create_shapes
 from ShapeViewerClass import ShapesViewer
 from IncisorsClass import load_incisors
 from ProcrustesAnalysis import procrustes_analysis
+from ProcrustesAnalysis import separate_good_bad_shape_fit
 
 from scipy.sparse.linalg import eigs
 
@@ -118,83 +119,32 @@ if __name__ == '__main__':
 
     # incisors = incisors[0:5]
 
-    # landmarksOrg = (np.array([[4, 0, 0], [0, 0, 1]])).astype(float) * 1
-    landmarksOrg = (np.array([[0, 5, 5, 0], [0, 0, 1, 1]])).astype(float)
-    # landmarksOrg = (np.array([[-5, 5, 10, 5, -5, -10], [-5, -5, 0, 5, 5, 0]], dtype=float))  # Hexagon
-    # landmarksOrg = (np.array([[-5, -3, 3, 5, 7, 8, 10, 8, 7, 5, 3, -3, -5, -7, -8, -10, -8, -7],
-    #                           [-5, -5, -5, -5, -3, -2, 0, 2, 3, 5, 5, 5, 5, 3, 2, 0, -2, -3]], dtype=float))
-    #
-    landmarks_ref = np.copy(landmarksOrg)
-    incisors = create_shapes(5, landmarks_ref)
+    # incisors = create_shapes(6)
 
     incisor_ref = procrustes_analysis(incisors)
 
-    incisors_bad_lm = []
-    incisors_good_lm = []
-    for incisor in incisors:
-        if incisor.ssd > 0.04 * 10:
-            incisors_bad_lm.append(incisor)
-        else:
-            incisors_good_lm.append(incisor)
+    incisors_good_fit, incisors_bad_fit = separate_good_bad_shape_fit(incisors)
 
-    shape_viewer_good = ShapesViewer(incisors_good_lm, incisor_ref)
-    shape_viewer_good.update_shapes_ref()
-    shape_viewer_good.update_shapes_all()
+    # shape_viewer_good = ShapesViewer(incisors_good_fit, incisor_ref)
+    # shape_viewer_good.update_shapes_ref()
+    # shape_viewer_good.update_shapes_all()
 
-    # shape_viewer_bad = ShapesViewer(incisors_bad_lm, incisor_ref)
-    # shape_viewer_bad.update_shapes_ref()
-    # shape_viewer_bad.update_shapes_all()
+    shape_viewer_bad = ShapesViewer(incisors_bad_fit, incisor_ref)
+    shape_viewer_bad.update_shapes_ref()
+    shape_viewer_bad.update_shapes_all()
 
-    print "Bad incisors and their ssd: "
-    for incisor in incisors_bad_lm:
-        print incisor.ssd
-
-    training_set = create_training_set(incisors, incisor_ref)
+    training_set = create_training_set(incisors_good_fit, incisor_ref)
     eigenval, eigenvec, lm_mu = principal_component_analysis(training_set, 3)
+    print "\neigenvalues = " + str(eigenval)
 
     incisor_mu = ObjectShape(lm_mu.reshape(2, np.size(lm_mu, 0) / 2))
-    a = incisor_mu.lm_org - incisor_ref.lm_org
-    print a
+    diff_mean = incisor_mu.lm_org - incisor_ref.lm_org
+    print "\ndiff_mean:"
+    print str(diff_mean)
 
-    # view_mu = ShapesViewer([incisor_mu], incisor_ref)
-    #
-    # view_mu.update_shapes_ref()
-    # view_mu.update_shapes_all()
-
-    # b = np.zeros_like(eigenval).reshape(len(eigenval), 1)
-    # b1 = np.copy(b)
-    # b2 = np.copy(b)
-    # b3 = np.copy(b)
-    #
-    # b1[0, 0] = 0 * np.sqrt(eigenval[0])
-    # b2[1, 0] = 3 * np.sqrt(eigenval[1])
-    # b3[2, 0] = 3 * np.sqrt(eigenval[2])
-    #
-    # x1 = (lm_mu + np.dot(eigenvec, b1).T).flatten()
-    # x2 = (lm_mu + np.dot(eigenvec, b2).T).flatten()
-    # x3 = (lm_mu + np.dot(eigenvec, b3).T).flatten()
-    #
-    # plt.figure()
-    # plt.subplot(311)
-    # x = x1[0:np.size(x1, 0) / 2]
-    # y = x1[np.size(x1, 0) / 2:]
-    # plt.plot(x, y)
-    # plt.grid()
-    # plt.show()
-    #
-    # plt.subplot(312)
-    # x = x2[0:np.size(x1, 0) / 2]
-    # y = x2[np.size(x1, 0) / 2:]
-    # plt.plot(x, y)
-    # plt.grid()
-    # plt.show()
-    #
-    # plt.subplot(313)
-    # x = x3[0:np.size(x1, 0) / 2]
-    # y = x3[np.size(x1, 0) / 2:]
-    # plt.plot(x, y)
-    # plt.grid()
-    # plt.show()
+    shape_viewer_mu = ShapesViewer([incisor_mu], incisor_ref)
+    shape_viewer_mu.update_shapes_ref()
+    shape_viewer_mu.update_shapes_all()
 
     show_modes(incisor_mu, eigenvec, eigenval)
 

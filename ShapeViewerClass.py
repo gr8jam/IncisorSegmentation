@@ -40,7 +40,7 @@ class ShapesViewer:
 
     def update_shape(self, handle, shape):
         s = shape.scale
-        s = 1
+        # s = 1
         # Update landmarks in local coordinate system
         handle.lm_loc.set_xdata(shape.lm_loc[0, :] * s)
         handle.lm_loc.set_ydata(shape.lm_loc[1, :] * s)
@@ -72,7 +72,7 @@ class ShapesViewer:
             self.update_shape(self.handle_list[idx], self.shapes_list[idx])
             # plt.waitforbuttonpress()
             # self.update_shapes_ref()
-            print self.shapes_list[idx].ssd
+            # print self.shapes_list[idx].ssd
 
     def update_shape_idx(self, shape_idx):
         self.update_shape(self.handle_list[shape_idx], self.shapes_list[shape_idx])

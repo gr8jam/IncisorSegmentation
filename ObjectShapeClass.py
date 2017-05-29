@@ -47,18 +47,22 @@ class ObjectShape:
         self.lm_loc = np.dot(myLib.getRotMatrix(self.theta), self.lm_loc)
 
 
-def create_shapes(num, lm_org):
+def create_shapes(num):
+    # lm_org = (np.array([[4,0,0],[0,0,1]])).astype(float)
+    lm_org = (np.array([[0, 5, 5, 0], [0, 0, 1, 1]])).astype(float)
+    # lm_org = (np.array([[-5, 5, 10, 5, -5, -10], [-5, -5, 0, 5, 5, 0]], dtype=float))  # Hexagon
+    # lm_org = (np.array([[-5, -3, 3, 5, 7, 8, 10, 8, 7, 5, 3, -3, -5, -7, -8, -10, -8, -7],
+    #                           [-5, -5, -5, -5, -3, -2, 0, 2, 3, 5, 5, 5, 5, 3, 2, 0, -2, -3]], dtype=float))
+
     obj_shapes = []
-
     np.random.seed(0)
-
     angle = np.array([0, 0, 0, 0, 45, -40, -30, -20, 10, 20, 30, 40]) * np.pi / 180.0
 
     for i in range(num):
         lm_ref = np.copy(lm_org)
         # lm_ref = np.roll(lm_ref, 1, axis=1)
         r, c = lm_ref.shape
-        lm = np.copy(lm_ref) + np.random.rand(r, c) * 0.5
+        lm = np.copy(lm_ref) + np.random.rand(r, c) * 0.1
         lm = myLib.scalePoints(lm, np.random.rand(1) * 3 - 1)
         lm = myLib.rotatePoints(lm, angle[i])
         lm = myLib.translatePoints(lm, np.random.rand(1) * 10 - 5, np.random.rand(1) * 10 - 5)
