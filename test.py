@@ -22,11 +22,16 @@ from matplotlib import pyplot as plt
 A = np.array([[2, 1, 0], [0, 0, 1]])
 b = np.array([1, -1, 0])
 
-print "A shape:" + str(A.shape)
-print A
-print "b shape: " + str(b.shape)
-print b
+# print "A shape:" + str(A.shape)
+# print A
+# print "b shape: " + str(b.shape)
+# print b
+#
+# c = np.dot(A,b)
+# print "c shape: " + str(c.shape)
+# print c
 
-c = np.dot(A,b)
-print "c shape: " + str(c.shape)
-print c
+print A
+R = np.roll(A, 1, axis=1)
+print R
+print A

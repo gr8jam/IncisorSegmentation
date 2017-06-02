@@ -32,16 +32,25 @@ def procrustes_analysis(shapes_list):
 
     # shape_mean = ObjectShape(np.zeros_like(shape_ref.lm_loc))
 
-    iteration_max = 30
+    iteration_max = 3
     iteration_cnt = 0
 
     while True:
-        plt.waitforbuttonpress()
+        shapes_viewer.update_shapes_ref()
+        for i, shape in enumerate(shapes_list):
+            shape.set_ssd(shape_ref.lm_loc)
+            shape.roll_lm_for_best_fit(shape_ref.lm_loc)
+            shapes_viewer.update_shape_idx(i)
+            # print "Shape idx= " + str(i) + " , roll= " + str(shape.roll)
+
+        # plt.waitforbuttonpress(0.001)
+
 
         # Reset the the mean estimate of landmarks
         lm_mean = np.zeros_like(shape_ref.lm_loc, dtype=float)
 
         # Superimpose all instances to current reference shape
+        shapes_viewer.update_shapes_ref()
         for i, shape in enumerate(shapes_list):
             # shapes_viewer.update_shape_idx(shape_idx)
             shape.set_landmarks_theta(shape_ref.lm_loc)
@@ -49,7 +58,6 @@ def procrustes_analysis(shapes_list):
             lm_mean = lm_mean + shape.lm_loc * shape.scale
             shapes_viewer.update_shape_idx(i)
 
-        shapes_viewer.update_shapes_ref()
 
         # Compute the mean shape of the current set of superimposed shapes
         # lm_mean = lm_mean[:, :, 1:]
@@ -67,6 +75,7 @@ def procrustes_analysis(shapes_list):
         shape_ref.center = shape_mean.center
         shape_ref.scale = shape_mean.scale
         shape_ref.theta = shape_mean.theta
+        shapes_viewer.update_shapes_ref()
 
         # End loop if sum of square distance change of mean shape is under certain threshold
         if ssdc < 1e-5:
@@ -79,8 +88,12 @@ def procrustes_analysis(shapes_list):
             break
         iteration_cnt = iteration_cnt + 1
 
+
+
+        # plt.waitforbuttonpress()
+
     for shape in shapes_list:
-        shape.ssd = np.sum(np.square(shape_ref.lm_loc - shape.lm_loc)) / len(shapes_list)
+        shape.set_ssd(shape_ref.lm_loc)
         # print shape.ssd
 
     return shape_ref
@@ -90,7 +103,7 @@ def separate_good_bad_shape_fit(shapes_list):
     shapes_list_good_fit = []
     shapes_list_bad_fit = []
     for shape in shapes_list:
-        if shape.ssd > 0.04:
+        if shape.ssd > 1.04:
             shapes_list_bad_fit.append(shape)
         else:
             shapes_list_good_fit.append(shape)
@@ -100,6 +113,7 @@ def separate_good_bad_shape_fit(shapes_list):
 def print_shapes_fit(shapes_list):
     for shape in shapes_list:
         print shape.ssd
+
 
 if __name__ == '__main__':
     os.chdir(os.path.dirname(sys.argv[0]))
@@ -116,22 +130,24 @@ if __name__ == '__main__':
 
     # incisors = incisors[0:5]
 
-    incisors = create_shapes(6)
+    # incisors = create_shapes(6)
 
     incisor_ref = procrustes_analysis(incisors)
 
     incisors_good_fit, incisors_bad_fit = separate_good_bad_shape_fit(incisors)
 
-    shape_viewer_good = ShapesViewer(incisors_good_fit, incisor_ref)
+    shape_viewer_good = ShapesViewer(incisors_good_fit, incisor_ref, "good shapes")
     shape_viewer_good.update_shapes_ref()
     shape_viewer_good.update_shapes_all()
 
-    shape_viewer_bad = ShapesViewer(incisors_bad_fit, incisor_ref)
+    shape_viewer_bad = ShapesViewer(incisors_bad_fit, incisor_ref, "bad shapes")
     shape_viewer_bad.update_shapes_ref()
     shape_viewer_bad.update_shapes_all()
 
     print "Bad incisors and their ssd: "
     print_shapes_fit(incisors_bad_fit)
+
+
 
     print "\nClick to finish process..."
     plt.waitforbuttonpress()

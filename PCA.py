@@ -125,11 +125,11 @@ if __name__ == '__main__':
 
     incisors_good_fit, incisors_bad_fit = separate_good_bad_shape_fit(incisors)
 
-    # shape_viewer_good = ShapesViewer(incisors_good_fit, incisor_ref)
-    # shape_viewer_good.update_shapes_ref()
-    # shape_viewer_good.update_shapes_all()
+    shape_viewer_good = ShapesViewer(incisors_good_fit, incisor_ref, "good shapes")
+    shape_viewer_good.update_shapes_ref()
+    shape_viewer_good.update_shapes_all()
 
-    shape_viewer_bad = ShapesViewer(incisors_bad_fit, incisor_ref)
+    shape_viewer_bad = ShapesViewer(incisors_bad_fit, incisor_ref, "bad shapes")
     shape_viewer_bad.update_shapes_ref()
     shape_viewer_bad.update_shapes_all()
 

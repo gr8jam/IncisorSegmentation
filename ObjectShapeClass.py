@@ -17,6 +17,7 @@ class ObjectShape:
         self.theta = 0.0
         self.lm_loc = self.get_landmarks_local()
         self.ssd = -1
+        self.roll = 0
 
     def get_landmarks_center(self):
         k = np.size(self.lm_org, 1)
@@ -46,21 +47,52 @@ class ObjectShape:
         self.theta = np.arctan2(numerator, denominator)
         self.lm_loc = np.dot(myLib.getRotMatrix(self.theta), self.lm_loc)
 
+    def roll_lm_for_best_fit(self, lm_ref):
+        self.roll_lm_left(lm_ref)
+        self.roll_lm_right(lm_ref)
+
+
+    def roll_lm(self, lm_ref, shift, ssd_prev):
+        # Direction determines the roll action
+        # shift = -1 : Roll one spot to the left
+        # shift = +1 : Roll one spot to the right
+        lm_rolled = np.roll(self.lm_loc, shift, axis=1)
+        ssd_rolled = self.compute_ssd(lm_ref, lm_rolled)
+        if ssd_rolled < self.ssd:
+            self.roll = self.roll + shift
+            self.ssd = ssd_rolled
+            self.lm_org = np.roll(self.lm_org, shift, axis=1)
+            self.lm_loc = np.roll(self.lm_loc, shift, axis=1)
+            self.roll_lm(lm_ref, shift, ssd_rolled)
+
+    def roll_lm_right(self, lm_ref):
+        self.roll_lm(lm_ref, +1, self.ssd)
+
+    def roll_lm_left(self, lm_ref):
+        self.roll_lm(lm_ref, -1, self.ssd)
+
+    def set_ssd(self, lm_ref):
+        self.ssd = self.compute_ssd(lm_ref, self.lm_loc)
+
+    def compute_ssd(self, lm_ref, lm_loc):
+        return np.sum(np.square(lm_ref - lm_loc)) / len(self.lm_loc)
+
+
 
 def create_shapes(num):
     # lm_org = (np.array([[4,0,0],[0,0,1]])).astype(float)
-    lm_org = (np.array([[0, 5, 5, 0], [0, 0, 1, 1]])).astype(float)
-    # lm_org = (np.array([[-5, 5, 10, 5, -5, -10], [-5, -5, 0, 5, 5, 0]], dtype=float))  # Hexagon
+    # lm_org = (np.array([[0, 5, 5, 0], [0, 0, 1, 1]])).astype(float)
+    lm_org = (np.array([[-5, 5, 10, 5, -5, -10], [-5, -5, 0, 5, 5, 0]], dtype=float))  # Hexagon
     # lm_org = (np.array([[-5, -3, 3, 5, 7, 8, 10, 8, 7, 5, 3, -3, -5, -7, -8, -10, -8, -7],
     #                           [-5, -5, -5, -5, -3, -2, 0, 2, 3, 5, 5, 5, 5, 3, 2, 0, -2, -3]], dtype=float))
 
     obj_shapes = []
     np.random.seed(0)
-    angle = np.array([0, 0, 0, 0, 45, -40, -30, -20, 10, 20, 30, 40]) * np.pi / 180.0
+    angle = np.array([0, 2, 3, 5, -5, -10, -30, -20, 10, 20, 30, 40]) * np.pi / 180.0
 
     for i in range(num):
         lm_ref = np.copy(lm_org)
-        # lm_ref = np.roll(lm_ref, 1, axis=1)
+        lm_ref = np.roll(lm_ref, i, axis=1)
         r, c = lm_ref.shape
         lm = np.copy(lm_ref) + np.random.rand(r, c) * 0.1
         lm = myLib.scalePoints(lm, np.random.rand(1) * 3 - 1)

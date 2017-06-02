@@ -11,12 +11,13 @@ class ShapeHandle:
 
 
 class ShapesViewer:
-    def __init__(self, shapes_list, shapes_ref):
+    def __init__(self, shapes_list, shapes_ref, title=""):
         self.fig = plt.figure()
         self.axes = plt.gca()
         myLib.move_figure('top-right')
         plt.axis('equal')
         plt.grid()
+        plt.title(title)
 
         self.handle_list = []
         self.shapes_list = shapes_list
@@ -40,7 +41,7 @@ class ShapesViewer:
 
     def update_shape(self, handle, shape):
         s = shape.scale
-        # s = 1
+        s = 1
         # Update landmarks in local coordinate system
         handle.lm_loc.set_xdata(shape.lm_loc[0, :] * s)
         handle.lm_loc.set_ydata(shape.lm_loc[1, :] * s)
