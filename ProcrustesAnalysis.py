@@ -14,8 +14,9 @@ from IncisorsClass import load_incisors
 
 def procrustes_analysis(shapes_list):
     # Arbitrarily choose a reference shape (typically by selecting it among the available instances)
-    np.random.seed(2)
+    np.random.seed(3)
     idx = np.random.randint(0, len(shapes_list))
+    idx = 0
 
     print "idx = " + str(idx)
     shape_ref = shapes_list[idx]
@@ -32,7 +33,7 @@ def procrustes_analysis(shapes_list):
 
     # shape_mean = ObjectShape(np.zeros_like(shape_ref.lm_loc))
 
-    iteration_max = 3
+    iteration_max = 30
     iteration_cnt = 0
 
     while True:
@@ -43,8 +44,7 @@ def procrustes_analysis(shapes_list):
             shapes_viewer.update_shape_idx(i)
             # print "Shape idx= " + str(i) + " , roll= " + str(shape.roll)
 
-        # plt.waitforbuttonpress(0.001)
-
+        # plt.waitforbuttonpress()
 
         # Reset the the mean estimate of landmarks
         lm_mean = np.zeros_like(shape_ref.lm_loc, dtype=float)
@@ -58,10 +58,7 @@ def procrustes_analysis(shapes_list):
             lm_mean = lm_mean + shape.lm_loc * shape.scale
             shapes_viewer.update_shape_idx(i)
 
-
         # Compute the mean shape of the current set of superimposed shapes
-        # lm_mean = lm_mean[:, :, 1:]
-        # lm_mean = np.mean(lm_mean, axis=2)
         lm_mean = lm_mean / float(len(shapes_list))
         shape_mean = ObjectShape(lm_mean)
 
@@ -78,7 +75,7 @@ def procrustes_analysis(shapes_list):
         shapes_viewer.update_shapes_ref()
 
         # End loop if sum of square distance change of mean shape is under certain threshold
-        if ssdc < 1e-5:
+        if ssdc < 1e-8:
             print("Procrustes analysis finished. Square distance change of mean shape was under certain threshold.")
             break
 
@@ -87,10 +84,6 @@ def procrustes_analysis(shapes_list):
             print("Procrustes analysis finished. Number of iteration exceeded the maximum allowed iterations.")
             break
         iteration_cnt = iteration_cnt + 1
-
-
-
-        # plt.waitforbuttonpress()
 
     for shape in shapes_list:
         shape.set_ssd(shape_ref.lm_loc)
@@ -146,8 +139,6 @@ if __name__ == '__main__':
 
     print "Bad incisors and their ssd: "
     print_shapes_fit(incisors_bad_fit)
-
-
 
     print "\nClick to finish process..."
     plt.waitforbuttonpress()

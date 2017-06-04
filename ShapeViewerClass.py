@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 import myLib
 
+
 class ShapeHandle:
     def __init__(self):
         # self.lm_org = None
@@ -8,6 +9,7 @@ class ShapeHandle:
         self.border = None
         self.center = None
         self.start = None
+        self.profile = None
 
 
 class ShapesViewer:
@@ -27,6 +29,7 @@ class ShapesViewer:
             handle.lm_loc = plt.plot([], [], 'k.', markersize=5)[0]
             handle.border = plt.plot([], [], 'r--')[0]
             handle.start = plt.plot([], [], 'g.', markersize=6)[0]
+            handle.profile = plt.plot([], [], 'k.', markersize=2)[0]
             # handle.lm_loc = plt.plot(shape.lm_loc[0, :], shape.lm_org[1, :], 'k.', markersize=20)[0]
             # handle.border = plt.plot(shape.lm_loc[0, :], shape.lm_loc[1, :], 'r--')[0]
             # handle.center = plt.plot(shape.lm_org[0, :], shape.lm_org[1, :], 'r.', markersize=10)[0]
@@ -57,6 +60,10 @@ class ShapesViewer:
         # Update first landmark position
         handle.start.set_xdata(shape.lm_loc[0, 0] * s)
         handle.start.set_ydata(shape.lm_loc[1, 0] * s)
+
+        # Update profile coordinates
+        # handle.profile.set_xdata(shape.profile_coordinates[0, :])
+        # handle.profile.set_ydata(shape.profile_coordinates[1, :])
 
         # recompute the ax.dataLim
         self.axes.relim()

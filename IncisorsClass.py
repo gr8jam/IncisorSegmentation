@@ -17,7 +17,7 @@ class IncisorShape(ObjectShape):
         self.num_image = num_img
         self.num_tooth = num_tth
 
-        self.pathLandmarks = "Project Data/_Data/Landmarks/original/landmarks" + str(num_img) + "-" + str(
+        self.pathLandmarks = "Project_Data/_Data/Landmarks/original/landmarks" + str(num_img) + "-" + str(
             num_tth) + ".txt"
 
         # self.pathLandmarks = "Project Data/_Data/Landmarks/mirrored/landmarks" + str(num_img+14) + "-" + str(
@@ -33,24 +33,25 @@ class IncisorShape(ObjectShape):
         del points
         del landmarks
 
-        # self.path_radiograph = "Project Data/_Data/Radiographs/" + str(num_img).zfill(2) + ".tif"
-        # self.radiograph = np.zeros((1, 1))
-        # self.radiograph = cv2.imread(self.path_radiograph, 0)
+        self.path_radiograph = "Project_Data/_Data/Radiographs/" + str(num_img).zfill(2) + ".tif"
+        self.radiograph = np.zeros((1, 1))
+        self.radiograph = cv2.imread(self.path_radiograph, 0)
         #
-        # self.path_segmentation = "Project Data/_Data/Segmentations/" + str(num_img).zfill(2) + "-" + str(
+        # self.path_segmentation = "Project_Data/_Data/Segmentations/" + str(num_img).zfill(2) + "-" + str(
         #     num_tth - 1) + ".png"
         # self.segmentation = np.zeros((1, 1))
         # self.segmentation = cv2.imread(self.path_segmentation, 0)
 
     def show_radiograph(self, position):
         plt.figure()
-        # plt.imshow(self.radiograph, cmap='gray', interpolation='bicubic')
+        plt.imshow(self.radiograph, cmap='gray', interpolation='bicubic')
         x = self.lm_org[0, :]
         y = self.lm_org[1, :]
-        maxx = np.amax(x) + 10
-        minx = np.amin(x) - 10
-        maxy = np.amax(y) + 10
-        miny = np.amin(y) - 10
+        window_margin = 50
+        maxx = np.amax(x) + window_margin
+        minx = np.amin(x) - window_margin
+        maxy = np.amax(y) + window_margin
+        miny = np.amin(y) - window_margin
         plt.plot(x, y, 'r.', markersize=10)
         plt.plot(x[0], y[0], 'w.', markersize=10)
         plt.plot(x[1], y[1], 'b.', markersize=10)
@@ -73,12 +74,12 @@ class IncisorShape(ObjectShape):
         plt.show()
 
 
-def load_incisors():
+def load_incisors(idx_incisors):
     incisors_list = []
-    for idx_radiograph in range(1, 14):  # 1 - 14
-        for idx_tooth in range(5, 9):   # 1 - 8
+    for idx_radiograph in range(1, 15):  # 1 - 14
+        for idx_incisor in idx_incisors:   # 1 - 8
             # plt.close('all')
-            incisors_list.append(IncisorShape(idx_radiograph, idx_tooth))
+            incisors_list.append(IncisorShape(idx_radiograph, idx_incisor))
     return incisors_list
 
 
@@ -99,7 +100,7 @@ if __name__ == '__main__':
     figCnt = 0
     # Load data from files
     for idx_radiograph in range(7, 8):
-        for idx_tooth in range(1, 9):
+        for idx_tooth in range(1, 2):
             # plt.close('all')
             incisors.append(IncisorShape(idx_radiograph, idx_tooth))
             if figCnt < 20:

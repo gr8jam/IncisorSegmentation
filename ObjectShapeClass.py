@@ -11,18 +11,20 @@ from ShapeViewerClass import ShapesViewer
 
 class ObjectShape:
     def __init__(self, lm):
-        self.lm_org = lm.astype(float)
-        self.center = self.get_landmarks_center()
+        self.lm_org = np.copy(lm.astype(float))
+        self.center = self.get_landmarks_center(self.lm_org)
         self.scale = self.get_landmarks_scale()
         self.theta = 0.0
         self.lm_loc = self.get_landmarks_local()
         self.ssd = -1
         self.roll = 0
+        self.normals = self.get_normals(lm)
+        self.profile_coordinates = self.get_profile_coordinates()
 
-    def get_landmarks_center(self):
-        k = np.size(self.lm_org, 1)
-        x = np.sum(self.lm_org[0, :]) / float(k)
-        y = np.sum(self.lm_org[1, :]) / float(k)
+    def get_landmarks_center(self, lm):
+        k = np.size(lm, 1)
+        x = np.sum(lm[0, :]) / float(k)
+        y = np.sum(lm[1, :]) / float(k)
         return np.vstack((x, y))
 
     def get_landmarks_scale(self):
@@ -51,7 +53,6 @@ class ObjectShape:
         self.roll_lm_left(lm_ref)
         self.roll_lm_right(lm_ref)
 
-
     def roll_lm(self, lm_ref, shift, ssd_prev):
         # Direction determines the roll action
         # shift = -1 : Roll one spot to the left
@@ -77,6 +78,30 @@ class ObjectShape:
     def compute_ssd(self, lm_ref, lm_loc):
         return np.sum(np.square(lm_ref - lm_loc)) / len(self.lm_loc)
 
+    def get_normals(self, lm):
+        center_temp = self.get_landmarks_center(lm)
+        normals = np.zeros(np.size(lm, axis=1))
+        for idx in range(len(normals)):
+            lm_prev = lm[:, (idx - 1) % len(normals)]
+            lm_next = lm[:, (idx + 1) % len(normals)]
+            alpha = np.arctan2(lm_next[1] - lm_prev[1], lm_next[0] - lm_prev[0]) + np.pi / 2
+            normals[idx] = alpha
+        return normals
+
+    def get_profile_coordinates(self):
+        k = 5
+        x0 = self.lm_org[0, :] + np.cos(self.normals + np.pi) * k
+        y0 = self.lm_org[1, :] + np.sin(self.normals + np.pi) * k
+        x1 = self.lm_org[0, :] + np.cos(self.normals) * k
+        y1 = self.lm_org[1, :] + np.sin(self.normals) * k
+
+        ny = 2 * (2 * k + 1)                # Number of samples along the normal
+        nx = np.size(self.lm_org, axis=1)   # Number of landmarks
+        profile_coord = np.zeros((ny, nx))
+        for idx in range(nx):
+            profile_coord[0:2 * k + 1, idx] = np.linspace(x0[idx], x1[idx], 2 * k + 1) #.astype(np.int)
+            profile_coord[2 * k + 1:, idx] = np.linspace(y0[idx], y1[idx], 2 * k + 1)  #.astype(np.int)
+        return profile_coord
 
 
 def create_shapes(num):
