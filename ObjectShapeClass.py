@@ -20,9 +20,9 @@ class ObjectShape:
         self.lm_loc = self.get_landmarks_local()
         self.ssd = -1
         self.roll = 0
-        self.k = 5
+        self.k = 4
         self.normals = self.get_normals()
-        self.levels = 5
+        self.levels = 4
         self.profile_coordinates = self.get_profile_coordinates()
         self.img = np.copy(img)
         if not (img is None):
@@ -139,30 +139,27 @@ class ObjectShape:
 
     def show_shape(self, fig, level=0):
         plt.figure(fig.number)
+        plt.axis('equal')
         plt.imshow(self.img_pyr[level], cmap='gray', interpolation='bicubic')
-        plt.plot(self.lm_org[0, :] / (2 ** level), self.lm_org[1, :] / (2 ** level),
-                 color='b', marker='.', markersize=15)  # landmarks
-        plt.plot(self.lm_org[0, 0] / (2 ** level), self.lm_org[1, 0] / (2 ** level),
-                 color='c', marker='.', markersize=15)  # start
-        plt.plot(self.lm_org[0, :] / (2 ** level), self.lm_org[1, :] / (2 ** level),
-                 color='b', linestyle='-', linewidth=1)  # border
-        x = self.profile_coordinates[0, :, :, level]
-        y = self.profile_coordinates[1, :, :, level]
-        plt.plot(x, y, color='c', marker='.', markersize=3, linestyle=' ')  # profile
 
-        x = self.lm_org[0, :] / (2 ** level)
-        y = self.lm_org[1, :] / (2 ** level)
+        lm_org_x = self.lm_org[0, :] / (2 ** level)
+        lm_org_y = self.lm_org[1, :] / (2 ** level)
 
-        # window_margin = 32 / (2 ** level)
-        # window_margin = self.k #* (self.levels - 1)
-        window_margin = self.k * 2**((self.levels - 1)-level) * 1.2
-        maxx = np.amax(x) + window_margin
-        minx = np.amin(x) - window_margin
-        maxy = np.amax(y) + window_margin
-        miny = np.amin(y) - window_margin
+        plt.plot(lm_org_x, lm_org_y, color='b', marker='.', markersize=15)  # landmarks
+        plt.plot(lm_org_x, lm_org_y, color='c', marker='.', markersize=15)  # start
+        plt.plot(lm_org_x, lm_org_y, color='b', linestyle='-', linewidth=1)  # border
+        plt.plot(self.profile_coordinates[0, :, :, level], self.profile_coordinates[1, :, :, level],
+                 color='c', marker='.', markersize=3, linestyle=' ')  # profile
+
+        window_margin = self.k * 2 ** ((self.levels - 1) - level) * 1.2
+        x_max = np.amax(lm_org_x) + window_margin
+        x_min = np.amin(lm_org_x) - window_margin
+        y_max = np.amax(lm_org_y) + window_margin
+        y_min = np.amin(lm_org_y) - window_margin
+
         axes = plt.gca()
-        axes.set_xlim([minx, maxx])
-        axes.set_ylim([maxy, miny])
+        axes.set_xlim([x_min, x_max])
+        axes.set_ylim([y_max, y_min])
         plt.show()
 
 

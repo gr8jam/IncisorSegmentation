@@ -21,7 +21,7 @@ def get_profile_intensity_mean(shapes_list):
 
     axis_len_0 = np.size(shapes_list[0].lm_org, axis=1)  # Number of landmarks
     axis_len_1 = 2 * shapes_list[0].k + 1  # Number of samples along profile normal
-    axis_len_2 = 5  # Number of levels in gaussian pyramid
+    axis_len_2 = shapes_list[0].levels  # Number of levels in gaussian pyramid
     axis_len_3 = len(shapes_list)  # Number of incisors in training set
     profile_intensity_array = np.zeros((axis_len_0, axis_len_1, axis_len_2, axis_len_3))
 
@@ -30,6 +30,29 @@ def get_profile_intensity_mean(shapes_list):
 
     profile_intensity_mean = np.mean(profile_intensity_array, axis=3)
     return profile_intensity_mean
+
+
+def show_profile_coordinates_along_landmark(shape, idx_lm, level=0):
+    fig_shape = plt.figure()
+    myLib.move_figure('top-right')
+    shape.show_shape(fig_shape, level)
+
+    # Highlight the profile of interest
+    plt.plot(shape.profile_coordinates[0, idx_lm, :, level],
+             shape.profile_coordinates[1, idx_lm, :, level],
+             color='r', marker='.', markersize=3, linestyle=' ')
+    plt.show()
+
+
+def show_profile_intensity_mean_along_landmark(profile_intensity_mean, idx_lm):
+    plt.figure()
+    myLib.move_figure('bottom-right')
+    plt.grid()
+    plt.title("intensity profile, lm = " + str(idx_lm))
+    for i in range(np.size(profile_intensity_mean, axis=2)):
+        plt.plot(profile_intensity_mean[idx_lm, :, i], label="intensity on level " + str(i))
+    plt.legend()
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -54,60 +77,23 @@ if __name__ == '__main__':
 
         incisors_profile_intensity_mean = get_profile_intensity_mean(incisors)
 
-        plt.waitforbuttonpress()
-        for idx_lm in range(1, 41, 50):
+        incisor_idx = 5
+
+        for idx_landmark in range(0, 40, 6):
             plt.close("all")
-
-            # Show tooth
-            fig_incisor = plt.figure()
-            myLib.move_figure('top-right')
-            plt.axis('equal')
-            level = 4
-            incisors[0].show_shape(fig_incisor, level)
-
-            # Highlight the profile of interest
-            plt.plot(incisors[0].profile_coordinates[0, idx_lm, :, level],
-                     incisors[0].profile_coordinates[1, idx_lm, :, level],
-                     color='r', marker='.', markersize=3, linestyle=' ')
-            plt.show()
-
-            plt.figure()
-            myLib.move_figure('bottom-right')
-            plt.grid()
-            plt.title("intensity profile, lm = " + str(idx_lm))
-            for i in range(np.size(incisors_profile_intensity_mean, axis=2)):
-                plt.plot(incisors_profile_intensity_mean[idx_lm, :, i], label="intensity on level " + str(i))
-            plt.legend()
-            plt.show()
+            show_profile_coordinates_along_landmark(incisors[incisor_idx], idx_landmark, 0)
+            show_profile_intensity_mean_along_landmark(incisors_profile_intensity_mean, idx_landmark)
             plt.waitforbuttonpress()
 
-    # shape_viewer = ShapesViewer([incisors[0]], incisors[0], "see profiles")
-    # shape_viewer.update_shapes_all()
+        # shape_viewer = ShapesViewer([incisors[0]], incisors[0], "see profiles")
+        # shape_viewer.update_shapes_all()
 
+        for level in range(incisors[incisor_idx].levels):
+            fig = plt.figure()
+            myLib.move_figure("top-left")
+            incisors[incisor_idx].show_shape(fig, level)
+            plt.waitforbuttonpress()
 
-    incisor_idx = 5
-    for level in range(incisors[incisor_idx].levels):
-        fig = plt.figure()
-        myLib.move_figure("top-left")
-        incisors[0].show_shape(fig, level)
-        plt.waitforbuttonpress()
-
-
-    # coord_x = 0
-    # coord_y = 20
-    # figCnt = 0
-    # level = 0
-    # for incisor in incisors:
-    #     if figCnt < 5:
-    #         coord_x += 5 + incisor.show_radiograph(np.array([coord_x, coord_y])) / 1.2
-    #         plt.plot(incisor.profile_coordinates[0, :, :, level], incisor.profile_coordinates[1, :, :, level], 'c.', markersize=2)
-    #         figCnt = figCnt + 1
-    #         # plt.waitforbuttonpress()
-    #         if coord_x > 1400:
-    #             coord_x = 0
-    #             coord_y = coord_y + 300
-
-    # plt.figure()
 
     print "\nClick to finish process..."
     plt.waitforbuttonpress()
