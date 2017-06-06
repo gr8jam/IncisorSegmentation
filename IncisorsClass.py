@@ -29,34 +29,32 @@ class IncisorShape(ObjectShape):
         landmarks[1, :] = points[1::2]
         landmarks = np.roll(landmarks, 5, axis=1)
 
-        ObjectShape.__init__(self, landmarks)
+        self.path_radiograph = "Project_Data/_Data/Radiographs/" + str(num_img).zfill(2) + ".tif"
+        img_radiograph = cv2.imread(self.path_radiograph, 0)
+
+        ObjectShape.__init__(self, landmarks, img_radiograph)
         del points
         del landmarks
 
-        self.path_radiograph = "Project_Data/_Data/Radiographs/" + str(num_img).zfill(2) + ".tif"
-        self.radiograph = np.zeros((1, 1))
-        self.radiograph = cv2.imread(self.path_radiograph, 0)
-        #
         # self.path_segmentation = "Project_Data/_Data/Segmentations/" + str(num_img).zfill(2) + "-" + str(
         #     num_tth - 1) + ".png"
-        # self.segmentation = np.zeros((1, 1))
-        # self.segmentation = cv2.imread(self.path_segmentation, 0)
+        # self.img_segmentation = cv2.imread(self.path_segmentation, 0)
 
     def show_radiograph(self, position):
         plt.figure()
-        plt.imshow(self.radiograph, cmap='gray', interpolation='bicubic')
+        plt.imshow(self.img, cmap='gray', interpolation='bicubic')
         x = self.lm_org[0, :]
         y = self.lm_org[1, :]
-        window_margin = 50
+        window_margin = 20
         maxx = np.amax(x) + window_margin
         minx = np.amin(x) - window_margin
         maxy = np.amax(y) + window_margin
         miny = np.amin(y) - window_margin
-        plt.plot(x, y, 'r.', markersize=10)
-        plt.plot(x[0], y[0], 'w.', markersize=10)
-        plt.plot(x[1], y[1], 'b.', markersize=10)
-        plt.plot(x[20], y[20], 'm.', markersize=10)
-        plt.plot(x[21], y[21], 'b.', markersize=10)
+        plt.plot(x, y, 'b.', markersize=4)
+        plt.plot(x[0], y[0], 'c.', markersize=8)
+        plt.plot(x[1], y[1], 'w.', markersize=6)
+        plt.plot(x[20], y[20], 'c.', markersize=4)
+        plt.plot(x[21], y[21], 'w.', markersize=4)
         axes = plt.gca()
         axes.set_xlim([minx, maxx])
         axes.set_ylim([maxy, miny])
@@ -66,7 +64,7 @@ class IncisorShape(ObjectShape):
 
     def show_segmentation(self):
         plt.figure()
-        plt.imshow(self.segmentation, cmap='gray', interpolation='bicubic')
+        plt.imshow(self.img_segmentation, cmap='gray', interpolation='bicubic')
         myLib.move_figure('bottom-right')
         x = self.lm_org[0, ::5]
         y = self.lm_org[1, ::5]

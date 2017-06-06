@@ -19,7 +19,7 @@ from matplotlib import pyplot as plt
 # plt.show(block=False)
 # plt.waitforbuttonpress()
 
-A = np.array([[2, 1, 0], [0, 0, 1]])
+A = np.array([[2.0, 5, 0], [0, 0, 1], [2, 3.0, 2.0]])
 b = np.array([1, -1, 0])
 
 # print "A shape:" + str(A.shape)
@@ -52,3 +52,20 @@ b = np.array([1, -1, 0])
 # alpha = np.arctan2(1,0)
 # print alpha
 
+M = np.arange(12).reshape((3,4))
+
+suma = np.sum(M, axis=0)
+print suma
+
+aa = M / suma
+print aa
+
+
+# multi = np.zeros((2, 3, 4))
+# # print multi
+# multi[1, 0, 0] = 1
+#
+# print multi[:,:,:]
+
+
+print type(A)

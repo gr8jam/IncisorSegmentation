@@ -19,7 +19,7 @@ def procrustes_analysis(shapes_list):
     idx = 0
 
     print "idx = " + str(idx)
-    shape_ref = shapes_list[idx]
+    shape_ref = ObjectShape(shapes_list[idx].lm_org, shapes_list[idx].img)
     # print "r = " + str(shape_ref.num_image)
     # print "t = " + str(shape_ref.num_tooth)
     # shape_ref.show_radiograph(np.array([800, 200]))
@@ -118,7 +118,8 @@ if __name__ == '__main__':
     plt.close('all')
 
     myLib.tic()
-    incisors = load_incisors()
+    incisor_idx = 5
+    incisors = load_incisors([incisor_idx])
     myLib.toc()
 
     # incisors = incisors[0:5]

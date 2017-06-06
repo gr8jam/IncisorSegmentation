@@ -113,6 +113,7 @@ def save_PCA_results(directory_path, shape_name, shape_idx, eigenvectors, eigenv
     np.save(file_path_eigenvalues, eigenvalues)
     np.save(file_path_mean, mean)
 
+
 if __name__ == '__main__':
     os.chdir(os.path.dirname(sys.argv[0]))
     warnings.filterwarnings("ignore", ".*GUI is implemented.*")
@@ -123,7 +124,7 @@ if __name__ == '__main__':
 
     plt.close('all')
 
-    incisor_idx_list = np.arange(1,9)
+    incisor_idx_list = np.arange(5, 6)
 
     for incisor_idx in incisor_idx_list:
         myLib.tic()
@@ -157,11 +158,11 @@ if __name__ == '__main__':
         # # print "\ndiff_mean:"
         # # print str(diff_mean)
         #
-        # shape_viewer_mu = ShapesViewer([incisor_mu], incisor_ref)
-        # shape_viewer_mu.update_shapes_ref()
-        # shape_viewer_mu.update_shapes_all()
+        shape_viewer_mu = ShapesViewer([incisor_mu], incisor_ref)
+        shape_viewer_mu.update_shapes_ref()
+        shape_viewer_mu.update_shapes_all()
 
-        # show_modes(incisor_mu, eigenvec, eigenval)
+        show_modes(incisor_mu, eigenvec, eigenval)
 
         # Save PCA
         dir_path = "Project_Data/_Data/PCA/"

@@ -3,43 +3,39 @@ import myLib
 
 
 class ShapeHandle:
-    def __init__(self):
+    def __init__(self, shape_color='b'):
         # self.lm_org = None
-        self.lm_loc = None
-        self.border = None
-        self.center = None
-        self.start = None
-        self.profile = None
+        self.lm_loc = plt.plot([], [], color=shape_color, marker='.', markersize=5)[0]
+        self.start = plt.plot([], [], color='c', marker='.', markersize=5)[0]
+        self.border = plt.plot([], [], color=shape_color, linestyle='-', linewidth=1)[0]
+
+        # self.lm_org = plt.plot([], [], color=shape_color, marker='.', markersize=5)[0]
+        # self.lm_org_start = plt.plot([], [], color='c', marker='.', markersize=5)[0]
+        # self.center = plt.plot([], [], color=shape_color, marker='.', markersize=6)[0]
+        # self.profile = plt.plot([], [], color='c', marker='.', markersize=5)[0]
 
 
 class ShapesViewer:
     def __init__(self, shapes_list, shapes_ref, title=""):
-        self.fig = plt.figure()
+        # Configure figure with local shape
+        self.fig_loc = plt.figure()
         self.axes = plt.gca()
         myLib.move_figure('top-right')
         plt.axis('equal')
         plt.grid()
         plt.title(title)
 
+        # Configure figure with original shape
+
+
         self.handle_list = []
         self.shapes_list = shapes_list
 
         for shape in self.shapes_list:
             handle = ShapeHandle()
-            handle.lm_loc = plt.plot([], [], 'k.', markersize=5)[0]
-            handle.border = plt.plot([], [], 'r--')[0]
-            handle.start = plt.plot([], [], 'g.', markersize=6)[0]
-            handle.profile = plt.plot([], [], 'k.', markersize=2)[0]
-            # handle.lm_loc = plt.plot(shape.lm_loc[0, :], shape.lm_org[1, :], 'k.', markersize=20)[0]
-            # handle.border = plt.plot(shape.lm_loc[0, :], shape.lm_loc[1, :], 'r--')[0]
-            # handle.center = plt.plot(shape.lm_org[0, :], shape.lm_org[1, :], 'r.', markersize=10)[0]
             self.handle_list.append(handle)
 
-        self.handle_ref = ShapeHandle()
-        self.handle_ref.lm_loc = plt.plot([], [], 'k.', markersize=10)[0]
-        self.handle_ref.border = plt.plot([], [], 'b--', linewidth=3)[0]
-        self.handle_ref.start = plt.plot([], [], 'g.', markersize=11)[0]
-        # self.handle_ref.center = plt.plot([], [], 'b.', markersize=10)[0]
+        self.handle_ref = ShapeHandle('r')
         self.shapes_ref = shapes_ref
 
     def update_shape(self, handle, shape):
@@ -53,17 +49,17 @@ class ShapesViewer:
         handle.border.set_xdata(shape.lm_loc[0, :] * s)
         handle.border.set_ydata(shape.lm_loc[1, :] * s)
 
-        # Update center
-        # self.handle.center.set_xdata(shape.center[0, :] * s)
-        # self.handle.center.set_ydata(shape.center[1, :] * s)
-
         # Update first landmark position
         handle.start.set_xdata(shape.lm_loc[0, 0] * s)
         handle.start.set_ydata(shape.lm_loc[1, 0] * s)
 
+        # Update center
+        # self.handle.center.set_xdata(shape.center[0, :])
+        # self.handle.center.set_ydata(shape.center[1, :])
+
         # Update profile coordinates
-        # handle.profile.set_xdata(shape.profile_coordinates[0, :])
-        # handle.profile.set_ydata(shape.profile_coordinates[1, :])
+        # handle.profile.set_xdata(shape.profile_coordinates[0, :, 0])
+        # handle.profile.set_ydata(shape.profile_coordinates[1, :, 0])
 
         # recompute the ax.dataLim
         self.axes.relim()
@@ -84,4 +80,8 @@ class ShapesViewer:
 
     def update_shape_idx(self, shape_idx):
         self.update_shape(self.handle_list[shape_idx], self.shapes_list[shape_idx])
+
+    def set_visible_profiles(self, visible=True):
+        for handle in self.handle_list:
+            handle.profile.set_visible(visible)
 

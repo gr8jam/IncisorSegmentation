@@ -4,6 +4,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 import os
+
+
 # import sys
 
 
@@ -74,7 +76,7 @@ def move_figure(position="top-right", manual_position=None):
 
 
 def tic():
-    #Homemade version of matlab tic and toc functions
+    # Homemade version of matlab tic and toc functions
     import time
     global startTime_for_tictoc
     startTime_for_tictoc = time.time()
@@ -86,5 +88,3 @@ def toc():
         print "Elapsed time is " + str(time.time() - startTime_for_tictoc) + " seconds."
     else:
         print "Toc: start time not set"
-
-
