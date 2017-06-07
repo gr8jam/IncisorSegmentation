@@ -79,8 +79,14 @@ def reconstruct_shape_object(shape_mu, P, b):
     """
         x = mu + P*b 
     """
-    lm_x = shape_mu.lm_org + np.dot(P, b).reshape(shape_mu.lm_org.shape)
+    lm_x = shape_mu.lm_loc + np.dot(P, b).reshape(shape_mu.lm_org.shape)
+    lm_x = lm_x * shape_mu.scale + shape_mu.center
     return ObjectShape(lm_x)
+
+
+def project_shape_to_principal_components_space(shape, shape_mu, P):
+    b = np.dot(np.transpose(P), (shape.lm_loc - shape_mu.lm_loc).flatten())
+    return b
 
 
 def show_modes(shape_mu, P, eigenvalues):
@@ -102,6 +108,12 @@ def show_modes(shape_mu, P, eigenvalues):
             plt.grid()
             plt.axis('equal')
             plt.show()
+
+            # print "\nb:"
+            # print b
+            # bb = project_shape_to_principal_components_space(shape, shape_mu, P)
+            # print "\nbb:"
+            # print bb
 
 
 def save_PCA_results(directory_path, shape_name, shape_idx, eigenvectors, eigenvalues, mean):
@@ -153,6 +165,7 @@ if __name__ == '__main__':
         # training_set = create_training_set(incisors_good_fit, incisor_ref)
         eigenval, eigenvec, lm_mu = principal_component_analysis(incisors_good_fit, incisor_ref, 3)
         print "\neigenvalues = " + str(eigenval)
+        # print "\neigenvectors = " + str(eigenvec)
 
         incisor_mu = ObjectShape(lm_mu.reshape(2, np.size(lm_mu, 0) / 2))
         # diff_mean = incisor_mu.lm_org - incisor_ref.lm_org

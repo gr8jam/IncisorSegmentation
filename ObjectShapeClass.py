@@ -52,14 +52,18 @@ class ObjectShape:
         return lm
 
     def set_landmarks_theta(self, lm_ref):
+        self.theta = self.get_landmarks_theta(lm_ref)
+        self.lm_loc = np.dot(myLib.getRotMatrix(self.theta), self.lm_loc)
+
+    def get_landmarks_theta(self, lm_ref):
         """ Obtain optiaml angle of rotation.
-        Help: https://en.wikipedia.org/wiki/Procrustes_analysis """
+            Help: https://en.wikipedia.org/wiki/Procrustes_analysis """
         a = self.lm_loc[0, :] * lm_ref[1, :] - self.lm_loc[1, :] * lm_ref[0, :]
         b = self.lm_loc[0, :] * lm_ref[0, :] + self.lm_loc[1, :] * lm_ref[1, :]
         numerator = np.sum(a)
         denominator = np.sum(b)
-        self.theta = np.arctan2(numerator, denominator)
-        self.lm_loc = np.dot(myLib.getRotMatrix(self.theta), self.lm_loc)
+        theta = np.arctan2(numerator, denominator)
+        return theta
 
     def roll_lm_for_best_fit(self, lm_ref):
         self.roll_lm_left(lm_ref)
