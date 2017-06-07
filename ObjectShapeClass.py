@@ -12,7 +12,7 @@ from ShapeViewerClass import ShapesViewer
 
 
 class ObjectShape:
-    def __init__(self, lm, img=None):
+    def __init__(self, lm, img=None, k=5, levels=4):
         self.lm_org = np.copy(lm.astype(float))
         self.center = self.get_landmarks_center(self.lm_org)
         self.scale = self.get_landmarks_scale()
@@ -20,9 +20,9 @@ class ObjectShape:
         self.lm_loc = self.get_landmarks_local()
         self.ssd = -1
         self.roll = 0
-        self.k = 4
+        self.k = k
         self.normals = self.get_normals()
-        self.levels = 4
+        self.levels = levels
         self.profile_coordinates = self.get_profile_coordinates()
         self.img = np.copy(img)
         if not (img is None):
@@ -31,10 +31,13 @@ class ObjectShape:
             self.profile_intensity = self.get_profile_intensity()
 
     def get_landmarks_center(self, lm):
-        k = np.size(lm, 1)
-        x = np.sum(lm[0, :]) / float(k)
-        y = np.sum(lm[1, :]) / float(k)
-        return np.vstack((x, y))
+        # k = np.size(lm, 1)
+        # x = np.sum(lm[0, :]) / float(k)
+        # y = np.sum(lm[1, :]) / float(k)
+        # return np.vstack((x, y))
+        center = np.mean(lm, axis=1)
+        center = center[:, np.newaxis]
+        return center
 
     def get_landmarks_scale(self):
         d = self.lm_org - self.center
@@ -116,8 +119,10 @@ class ObjectShape:
             y1 = self.lm_org[1, :] / (2 ** level) + np.sin(self.normals) * self.k
 
             for landmark in range(axis_len_1):
-                profile_coordinates[0, landmark, :, level] = np.linspace(x0[landmark], x1[landmark], 2 * self.k + 1)
-                profile_coordinates[1, landmark, :, level] = np.linspace(y0[landmark], y1[landmark], 2 * self.k + 1)
+                x = (np.linspace(x0[landmark], x1[landmark], 2 * self.k + 1))
+                y = (np.linspace(y0[landmark], y1[landmark], 2 * self.k + 1))
+                profile_coordinates[0, landmark, :, level] = x.astype(np.int)
+                profile_coordinates[1, landmark, :, level] = y.astype(np.int)
         return profile_coordinates
 
     def get_profile_intensity(self):
@@ -134,7 +139,10 @@ class ObjectShape:
                 profile_intensity[idx, :, level] = self.img_pyr[level][y.astype(np.int), x.astype(np.int)]  # faster
                 # profile_intensity[idx, :] = map_coordinates(img_pyr[level], np.vstack((y, x))        # interpolation
                 profile_sum = np.sum(profile_intensity[idx, :, level], axis=0)
-                profile_intensity[idx, :, level] = profile_intensity[idx, :, level] / profile_sum
+                if profile_sum == 0:
+                    profile_sum = 1
+                profile_intensity[idx, :, level] = profile_intensity[idx, :, level] * self.k / profile_sum
+
         return profile_intensity
 
     def show_shape(self, fig, level=0):

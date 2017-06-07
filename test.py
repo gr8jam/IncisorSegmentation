@@ -52,13 +52,13 @@ b = np.array([1, -1, 0])
 # alpha = np.arctan2(1,0)
 # print alpha
 
-M = np.arange(12).reshape((3,4))
-
-suma = np.sum(M, axis=0)
-print suma
-
-aa = M / suma
-print aa
+# M = np.arange(12).reshape((3,4))
+#
+# suma = np.sum(M, axis=0)
+# print suma
+#
+# aa = M / suma
+# print aa
 
 
 # multi = np.zeros((2, 3, 4))
@@ -67,5 +67,4 @@ print aa
 #
 # print multi[:,:,:]
 
-
-print type(A)
+if True: print "Hello"

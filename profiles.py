@@ -1,6 +1,5 @@
 import numpy as np
 from matplotlib import pyplot as plt
-import scipy
 import os
 import sys
 import matplotlib
@@ -8,17 +7,11 @@ import matplotlib
 import myLib
 import warnings
 
-from ObjectShapeClass import ObjectShape
-from ObjectShapeClass import create_shapes
-from ShapeViewerClass import ShapesViewer
 from IncisorsClass import load_incisors
 from ProcrustesAnalysis import procrustes_analysis
-from ProcrustesAnalysis import separate_good_bad_shape_fit
 
 
 def get_profile_intensity_mean(shapes_list):
-    procrustes_analysis(shapes_list)
-
     axis_len_0 = np.size(shapes_list[0].lm_org, axis=1)  # Number of landmarks
     axis_len_1 = 2 * shapes_list[0].k + 1  # Number of samples along profile normal
     axis_len_2 = shapes_list[0].levels  # Number of levels in gaussian pyramid
@@ -75,6 +68,7 @@ if __name__ == '__main__':
         # incisors = load_incisors([5, 6, 7, 8])
         myLib.toc()
 
+        procrustes_analysis(incisors)
         incisors_profile_intensity_mean = get_profile_intensity_mean(incisors)
 
         incisor_idx = 5

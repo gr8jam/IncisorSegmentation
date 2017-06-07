@@ -72,6 +72,7 @@ class ShapesViewer:
         self.update_shape(self.handle_ref, self.shapes_ref)
 
     def update_shapes_all(self):
+        self.update_shapes_ref()
         for idx in range(len(self.handle_list)):
             self.update_shape(self.handle_list[idx], self.shapes_list[idx])
             # plt.waitforbuttonpress()

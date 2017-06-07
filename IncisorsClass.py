@@ -13,7 +13,7 @@ from ObjectShapeClass import ObjectShape
 class IncisorShape(ObjectShape):
     """" Class represents incisor shape"""
 
-    def __init__(self, num_img, num_tth):
+    def __init__(self, num_img, num_tth, levels):
         self.num_image = num_img
         self.num_tooth = num_tth
 
@@ -32,13 +32,14 @@ class IncisorShape(ObjectShape):
         self.path_radiograph = "Project_Data/_Data/Radiographs_Preprocessed/" + str(num_img).zfill(2) + ".tif"
         img_radiograph = cv2.imread(self.path_radiograph, 0)
 
-        ObjectShape.__init__(self, landmarks, img_radiograph)
+        self.path_segmentation = "Project_Data/_Data/Segmentations/" + str(num_img).zfill(2) + "-" + str(num_tth - 1) + ".png"
+        img_segmentation = cv2.imread(self.path_segmentation, 0)
+
+        ObjectShape.__init__(self, landmarks, img_segmentation, k=5, levels=levels)
         del points
         del landmarks
 
-        # self.path_segmentation = "Project_Data/_Data/Segmentations/" + str(num_img).zfill(2) + "-" + str(
-        #     num_tth - 1) + ".png"
-        # self.img_segmentation = cv2.imread(self.path_segmentation, 0)
+
 
     def show_radiograph(self, position):
         plt.figure()
@@ -72,12 +73,12 @@ class IncisorShape(ObjectShape):
         plt.show()
 
 
-def load_incisors(idx_incisors):
+def load_incisors(idx_incisors, levels=4):
     incisors_list = []
     for idx_radiograph in range(1, 15):  # 1 - 14
         for idx_incisor in idx_incisors:   # 1 - 8
             # plt.close('all')
-            incisors_list.append(IncisorShape(idx_radiograph, idx_incisor))
+            incisors_list.append(IncisorShape(idx_radiograph, idx_incisor, levels=levels))
     return incisors_list
 
 

@@ -18,15 +18,16 @@ from ProcrustesAnalysis import separate_good_bad_shape_fit
 from scipy.sparse.linalg import eigs
 
 
-def principal_component_analysis(X, num_pc):
+def principal_component_analysis(shapes_list, shape_ref, num_pc):
     """
-        Do a PCA analysis on X.
+        Do a PCA analysis on shapes collected in shapes_list.
 
         Args:
-            X (np.array):   Training set with vertically stacked training vectors xi, with dimensions [d x n], 
-                            where [d] is the number of points (dimensions) in training vector and [n] is number of 
-                            training vectors.
-            num_pc (int):   Number of principal components that are of user's interest
+            shapes_list (np.array): Training set with vertically stacked training vectors xi, with dimensions [d x n],
+                                    where [d] is the number of points (dimensions) in training vector and [n] is number
+                                    of training vectors.
+            shape_ref (ObjectShape):Reference shape
+            num_pc (int):           Number of principal components that are of user's interest
 
         Returns:
             eigen_values (np.array) : num_pc largest eigenvalues of the covariance matrix
@@ -34,6 +35,8 @@ def principal_component_analysis(X, num_pc):
             mu (np.array)           : Average sample.
 
     """
+    X = create_training_set(shapes_list, shape_ref)
+
     [d, n] = X.shape
     if (num_pc <= 0) or (num_pc > n):
         num_pc = n - 1
@@ -59,9 +62,7 @@ def principal_component_analysis(X, num_pc):
 
 def create_training_set(shapes_list, shape_ref):
     """
-        Create an training set with horizontally stacking landmarks from all the shapes in shapes_list     
-        :param shapes_list: 
-        :return: 
+        Create an training set with horizontally stacking landmarks from all the shapes in shapes_list
     """
     n = len(shapes_list)
     d = len(shapes_list[0].lm_loc.flatten())
@@ -85,7 +86,7 @@ def reconstruct_shape_object(shape_mu, P, b):
 def show_modes(shape_mu, P, eigenvalues):
     plt.figure()
     myLib.move_figure(position="right")
-    coef = np.array([-2, 0, 2])
+    coef = np.array([-3, 0, 3])
     for i in range(3):
         for j in range(3):
             b = np.zeros_like(eigenvalues)
@@ -149,8 +150,8 @@ if __name__ == '__main__':
         # shape_viewer_bad.update_shapes_ref()
         # shape_viewer_bad.update_shapes_all()
 
-        training_set = create_training_set(incisors_good_fit, incisor_ref)
-        eigenval, eigenvec, lm_mu = principal_component_analysis(training_set, 3)
+        # training_set = create_training_set(incisors_good_fit, incisor_ref)
+        eigenval, eigenvec, lm_mu = principal_component_analysis(incisors_good_fit, incisor_ref, 3)
         print "\neigenvalues = " + str(eigenval)
 
         incisor_mu = ObjectShape(lm_mu.reshape(2, np.size(lm_mu, 0) / 2))
@@ -167,7 +168,7 @@ if __name__ == '__main__':
         # Save PCA
         dir_path = "Project_Data/_Data/PCA/"
         # save_PCA_results(dir_path, "incisor", incisor_idx, eigenvec, eigenval, lm_mu)
-
+    plt.figure()
     print "\nClick to finish process..."
     plt.waitforbuttonpress()
 

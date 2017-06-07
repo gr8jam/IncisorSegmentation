@@ -12,11 +12,19 @@ from ShapeViewerClass import ShapesViewer
 from IncisorsClass import load_incisors
 
 
-def procrustes_analysis(shapes_list):
+def procrustes_alignment(shapes_list, shape_ref):
+    # Superimpose all instances to current reference shape
+    for i, shape in enumerate(shapes_list):
+        shape.set_ssd(shape_ref.lm_loc)
+        shape.roll_lm_for_best_fit(shape_ref.lm_loc)
+        shape.set_landmarks_theta(shape_ref.lm_loc)
+
+
+def procrustes_analysis(shapes_list, visualization=True):
     # Arbitrarily choose a reference shape (typically by selecting it among the available instances)
     np.random.seed(3)
     idx = np.random.randint(0, len(shapes_list))
-    idx = 0
+    idx = 3
 
     print "idx = " + str(idx)
     shape_ref = ObjectShape(shapes_list[idx].lm_org, shapes_list[idx].img)
@@ -24,12 +32,14 @@ def procrustes_analysis(shapes_list):
     # print "t = " + str(shape_ref.num_tooth)
     # shape_ref.show_radiograph(np.array([800, 200]))
 
-    shapes_viewer = ShapesViewer(shapes_list, shape_ref)
+    if visualization:
+        shapes_viewer = ShapesViewer(shapes_list, shape_ref)
 
-    shapes_viewer.update_shapes_ref()
-    for shape_idx in range(len(shapes_list)):
-        shapes_viewer.update_shape_idx(shape_idx)
-    plt.waitforbuttonpress(0.5)
+        shapes_viewer.update_shapes_ref()
+        for shape_idx in range(len(shapes_list)):
+            shapes_viewer.update_shape_idx(shape_idx)
+        plt.waitforbuttonpress(0.5)
+        # plt.waitforbuttonpress()
 
     # shape_mean = ObjectShape(np.zeros_like(shape_ref.lm_loc))
 
@@ -37,28 +47,20 @@ def procrustes_analysis(shapes_list):
     iteration_cnt = 0
 
     while True:
-        shapes_viewer.update_shapes_ref()
-        for i, shape in enumerate(shapes_list):
-            shape.set_ssd(shape_ref.lm_loc)
-            shape.roll_lm_for_best_fit(shape_ref.lm_loc)
-            shapes_viewer.update_shape_idx(i)
-            # print "Shape idx= " + str(i) + " , roll= " + str(shape.roll)
 
-        # plt.waitforbuttonpress()
-
-        # Reset the the mean estimate of landmarks
-        lm_mean = np.zeros_like(shape_ref.lm_loc, dtype=float)
+        if visualization:
+            shapes_viewer.update_shapes_all()
 
         # Superimpose all instances to current reference shape
-        shapes_viewer.update_shapes_ref()
-        for i, shape in enumerate(shapes_list):
-            # shapes_viewer.update_shape_idx(shape_idx)
-            shape.set_landmarks_theta(shape_ref.lm_loc)
-            # lm_mean = np.dstack((lm_mean, shape.lm_loc * shape.scale))
-            lm_mean = lm_mean + shape.lm_loc * shape.scale
-            shapes_viewer.update_shape_idx(i)
+        procrustes_alignment(shapes_list, shape_ref)
+
+        if visualization:
+            shapes_viewer.update_shapes_all()
 
         # Compute the mean shape of the current set of superimposed shapes
+        lm_mean = np.zeros_like(shape_ref.lm_loc, dtype=float)
+        for shape in shapes_list:
+            lm_mean = lm_mean + shape.lm_loc * shape.scale
         lm_mean = lm_mean / float(len(shapes_list))
         shape_mean = ObjectShape(lm_mean)
 
@@ -72,7 +74,9 @@ def procrustes_analysis(shapes_list):
         shape_ref.center = shape_mean.center
         shape_ref.scale = shape_mean.scale
         shape_ref.theta = shape_mean.theta
-        shapes_viewer.update_shapes_ref()
+
+        if visualization:
+            shapes_viewer.update_shapes_ref()
 
         # End loop if sum of square distance change of mean shape is under certain threshold
         if ssdc < 1e-8:
@@ -85,9 +89,21 @@ def procrustes_analysis(shapes_list):
             break
         iteration_cnt = iteration_cnt + 1
 
-    for shape in shapes_list:
+    # axis_len_0 = 2  # DOF
+    # axis_len_1 = len(shapes_list)
+    shape_centers_sum = np.zeros((2,1))
+    # shape_theta_sum = 0
+    for idx_shape, shape in enumerate(shapes_list):
         shape.set_ssd(shape_ref.lm_loc)
         # print shape.ssd
+        shape_centers_sum += shape.center
+        # shape_theta_sum += shape.theta
+
+    shape_centers = shape_centers_sum / len(shapes_list)
+    # shape_theta = shape_theta_sum / len(shapes_list)
+    # print "Avrage theta" + str(shape_theta)
+    shape_ref.center = shape_centers
+    shape_ref.lm_org += shape_ref.center
 
     return shape_ref
 
