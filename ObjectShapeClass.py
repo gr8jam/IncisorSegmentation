@@ -145,7 +145,7 @@ class ObjectShape:
                 profile_sum = np.sum(profile_intensity[idx, :, level], axis=0)
                 if profile_sum == 0:
                     profile_sum = 1
-                profile_intensity[idx, :, level] = profile_intensity[idx, :, level] * self.k / profile_sum
+                profile_intensity[idx, :, level] = profile_intensity[idx, :, level] / profile_sum
 
         return profile_intensity
 

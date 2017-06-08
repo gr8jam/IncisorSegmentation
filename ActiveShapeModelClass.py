@@ -19,31 +19,13 @@ from profiles import get_profile_intensity_mean
 from ImagePreprocessing import preprocess_radiograph
 
 
-# class ShapeModelHandle:
-#     def __init__(self):
-#         self.lm_org = plt.plot([], [], color='b', marker='.', markersize=5)[0]
-#         self.border = plt.plot([], [], color='b', linestyle='-', linewidth=1)[0]
-#         self.center = plt.plot([], [], color='b', marker='.', markersize=6)[0]
-#
-#         self.profile = plt.plot([], [], color='c', marker='.', markersize=5, linestyle=' ')[0]
-#         self.start = plt.plot([], [], color='r', marker='.', markersize=8)[0]
-#
-#
-# class ShapeTargetHandle:
-#     def __init__(self):
-#         self.lm_org = plt.plot([], [], color='g', marker='.', markersize=5)[0]
-#         self.border = plt.plot([], [], color='g', linestyle='-', linewidth=0.21)[0]
-#         self.center = plt.plot([], [], color='g', marker='.', markersize=6)[0]
-#         self.profile = plt.plot([], [], color='g', marker='.', markersize=5)[0]
-
-
 class ActiveShapeModel:
     def __init__(self, shapes_list, img, init_pos, levels):
         self.init_center = np.copy(init_pos)
         self.img = np.copy(img)
 
         self.shape_ref = procrustes_analysis(shapes_list, visualization=False)
-        eigenval, eigenvec, lm_mu = principal_component_analysis(shapes_list, self.shape_ref, 10)
+        eigenval, eigenvec, lm_mu = principal_component_analysis(shapes_list, self.shape_ref, 5)
         self.eigenvalues = eigenval
         self.eigenvectors = eigenvec
         self.profile_intensity_mean = get_profile_intensity_mean(shapes_list)
@@ -51,7 +33,7 @@ class ActiveShapeModel:
         self.current_level = levels - 1
 
         lm_model = (self.shape_ref.lm_org - self.shape_ref.center + self.init_center).astype(np.int)
-        self.shape_model = ObjectShape(lm_model, self.img, k=8, levels=self.current_level + 1)
+        self.shape_model = ObjectShape(lm_model, self.img, k=6, levels=self.current_level + 1)
         self.shape_target = None
 
         self.b = np.zeros_like(self.eigenvalues)
@@ -60,8 +42,6 @@ class ActiveShapeModel:
         myLib.move_figure('right')
         plt.imshow(self.shape_model.img, cmap='gray', interpolation='bicubic')
         plt.plot(self.init_center[0, 0], self.init_center[1, 0], color='r', marker='.', markersize=5)
-        # self.handle_model = ShapeModelHandle()
-        # self.handle_target = ShapeTargetHandle()
         self.update_figure()
 
         # self.update_target_points()
@@ -84,7 +64,8 @@ class ActiveShapeModel:
             print self.current_level
             self.active_shape_model_algorithm()
             self.current_level -= 1
-            # plt.waitforbuttonpress()
+            plt.waitforbuttonpress()
+        self.current_level = 0
 
     def active_shape_model_algorithm(self):
         for i in range(5):
@@ -98,15 +79,10 @@ class ActiveShapeModel:
         b = self.b * 0
         b_old = np.copy(b)
 
-        # print "b"
-        # print b
-
-        max_iter = 2
+        max_iter = 3
         num_iter = 0
 
         while True:
-            # self.update_figure()
-            # plt.waitforbuttonpress()
 
             b = project_shape_to_principal_components_space(self.shape_target, self.shape_ref, self.eigenvectors)
 
@@ -129,56 +105,8 @@ class ActiveShapeModel:
 
             b_change = b - b_old
             b_old = np.copy(b)
-            # print b_change
 
             if np.sum(b_change) < 1e-10:
-                # print "Out"
-                break
-
-            num_iter += 1
-            if num_iter > max_iter:
-                break
-
-    def match_model_to_target_2(self):
-
-        b = self.b * 0
-        b_old = np.copy(b)
-
-        # print "b"
-        # print b
-
-        max_iter = 2
-        num_iter = 0
-
-        while True:
-            # self.update_figure()
-            # plt.waitforbuttonpress()
-
-            b = project_shape_to_principal_components_space(self.shape_target, self.shape_ref, self.eigenvectors)
-
-            limit = 2
-            for idx, param in enumerate(b):
-                if b[idx] > limit * np.sqrt(self.eigenvalues[idx]):
-                    b[idx] = limit * np.sqrt(self.eigenvalues[idx])
-                elif b[idx] < -limit * np.sqrt(self.eigenvalues[idx]):
-                    b[idx] = -limit * np.sqrt(self.eigenvalues[idx])
-
-            shape_new_model = reconstruct_shape_object(self.shape_ref, self.eigenvectors, b)
-            theta = shape_new_model.get_landmarks_theta(self.shape_target.lm_loc)
-            lm_model = np.dot(myLib.getRotMatrix(theta), shape_new_model.lm_loc)
-            lm_model = lm_model * self.shape_target.scale + self.shape_target.center
-            self.shape_model = ObjectShape(lm_model, self.img, k=8, levels=self.current_level + 1)
-
-            procrustes_alignment([self.shape_model], self.shape_target)
-            lm_new = self.shape_model.lm_loc * self.shape_target.scale + self.shape_target.center
-            self.shape_model = ObjectShape(lm_new, self.img, k=8, levels=self.current_level + 1)
-
-            b_change = b - b_old
-            b_old = np.copy(b)
-            # print b_change
-
-            if np.sum(b_change) < 1e-10:
-                # print "Out"
                 break
 
             num_iter += 1
@@ -191,19 +119,41 @@ class ActiveShapeModel:
         len_ns = np.size(self.shape_model.profile_intensity, axis=1)
         for idx_lm in range(np.size(self.shape_model.lm_org, axis=1)):
             intensity_match = np.zeros((len_ns - len_k + 1,))
+            intensity_similarity = np.zeros((len_ns - len_k + 1,))
             for idx_k in range(len_ns - len_k + 1):
-                intensity_error = (self.shape_model.profile_intensity[idx_lm, idx_k:idx_k + len_k, self.current_level] -
-                                   self.profile_intensity_mean[idx_lm, :, self.current_level]) ** 2
+                model_intensity = self.shape_model.profile_intensity[idx_lm, idx_k:idx_k + len_k, self.current_level]
+                mean_intensity = self.profile_intensity_mean[idx_lm, :, self.current_level]
+                intensity_error = (model_intensity - mean_intensity)
+                intensity_error = intensity_error ** 2
                 intensity_match[idx_k] = np.sum(intensity_error)
 
+                inner_product = model_intensity * mean_intensity
+
+                intensity_similarity[idx_k] = np.sum(inner_product)
+
+
+                # if (idx_lm > 0) and (idx_lm < 2):
+                #     plt.figure()
+                #     plt.title('shift = ' + str(idx_k))
+                #     plt.plot(model_intensity, 'b-')
+                #     plt.plot(mean_intensity, 'r-')
+                #     plt.show()
+                #     plt.waitforbuttonpress()
+                #     # plt.close()
+
             idx_min_error = np.argmin(intensity_match)
+            idx_min_error = np.argmax(intensity_similarity)
+
             idx_best_match = idx_min_error + (len_k - 1) / 2
+
             lm_target[:, idx_lm] = self.shape_model.profile_coordinates[:, idx_lm, idx_best_match, self.current_level]
 
-            # if (idx_lm > 4) and (idx_lm < 6) and (self.current_level == 1):
-                # self.show_profile_intensity_match(idx_lm, intensity_match, idx_min_error)
+            # if (idx_lm > 0) and (idx_lm < 2):  # and (self.current_level == 1):
+            #     # self.show_profile_intensity_match(idx_lm, intensity_match, idx_min_error)
+            #     self.show_profile_intensity_match(idx_lm, intensity_similarity, idx_min_error)
 
-        self.shape_target = ObjectShape(lm_target * (2**self.current_level))
+        self.shape_target = ObjectShape(lm_target * (2 ** self.current_level))
+        self.update_figure()
 
     def update_figure(self):
         plt.figure(self.fig.number)
@@ -234,9 +184,9 @@ class ActiveShapeModel:
                  color='b', marker='.', markersize=5)
 
         # Draw model's first landmark
-        plt.plot(self.shape_model.lm_org[0, 0] / (2 ** self.current_level),
-                 self.shape_model.lm_org[1, 0] / (2 ** self.current_level),
-                 color='c', marker='.', markersize=8)
+        plt.plot(self.shape_model.lm_org[0, 12] / (2 ** self.current_level),
+                 self.shape_model.lm_org[1, 12] / (2 ** self.current_level),
+                 color='m', marker='.', markersize=8)
 
         # Draw model's border
         plt.plot(self.shape_model.lm_org[0, :] / (2 ** self.current_level),
@@ -260,7 +210,7 @@ class ActiveShapeModel:
                      color='g', linestyle='-', linewidth=1)
 
         # recompute the axis limits
-        window_margin = 150 / (2 ** self.current_level)
+        window_margin = 350 / (2 ** self.current_level)
         x_max = self.init_center[0, 0] / (2 ** self.current_level) + window_margin
         x_min = self.init_center[0, 0] / (2 ** self.current_level) - window_margin
         y_max = self.init_center[1, 0] / (2 ** self.current_level) + window_margin
@@ -279,12 +229,19 @@ class ActiveShapeModel:
         len_k = np.size(self.profile_intensity_mean, axis=1)
         plt.plot(np.arange(len_ns), self.shape_model.profile_intensity[lm_idx, :, self.current_level], 'b-')
         plt.plot(np.arange(len_k) + idx_min_error, self.profile_intensity_mean[lm_idx, :, self.current_level], 'r-')
+        plt.plot([idx_min_error, idx_min_error],
+                 [0, np.max([np.max(self.profile_intensity_mean[lm_idx, :, self.current_level]),
+                             np.max(self.shape_model.profile_intensity[lm_idx, :, self.current_level])])], 'r--')
+        plt.plot([idx_min_error + len_k - 1, idx_min_error + len_k - 1],
+                 [0, np.max([np.max(self.profile_intensity_mean[lm_idx, :, self.current_level]),
+                             np.max(self.shape_model.profile_intensity[lm_idx, :, self.current_level])])], 'r--')
+
         plt.title("idx_lm = " + str(lm_idx))
 
         plt.subplot(2, 1, 2)
         plt.plot(intensity_match)
         plt.show()
-        # plt.waitforbuttonpress()
+        plt.waitforbuttonpress()
         plt.close(fig_temp.number)
 
     def rigid_aligment(self, shape, shape_ref):
@@ -304,13 +261,13 @@ if __name__ == '__main__':
     print("Start of the script")
     fig_dummy = plt.figure()
 
-    num_levels = 4
+    num_levels = 3
     incisors = load_incisors([5], levels=num_levels)
-    file_path = "Project_Data/_Data/Radiographs_Preprocessed/01.tif"
-    file_path = "Project_Data/_Data/Segmentations/" + str(2).zfill(2) + "-" + str(5 - 1) + ".png"
+    file_path = "Project_Data/_Data/Radiographs_Preprocessed/08.tif"
+    # file_path = "Project_Data/_Data/Segmentations_Preprocessed/02.tif"
     img_radiograph = cv2.imread(file_path, 0)
     # img_radiograph = preprocess_radiograph(img_radiograph)
-    pos = np.array([[1410], [1175]])
+    pos = np.array([[1400], [1005]])
 
     asm = ActiveShapeModel(incisors, img_radiograph, pos, levels=num_levels)
 

@@ -71,14 +71,7 @@ def save_preprocessed_radiograph(img, idx_radiofraph):
     cv2.imwrite(dir_path + file_name, img)
 
 
-if __name__ == '__main__':
-    os.chdir(os.path.dirname(sys.argv[0]))
-    warnings.filterwarnings("ignore", ".*GUI is implemented.*")
-    matplotlib.interactive(True)
-
-    print("---------------------------")
-    print("Start of the script")
-
+def create_preprocessed_radiographs():
     for num_img in range(1, 15):
         path_radiograph = "Project_Data/_Data/Radiographs/" + str(num_img).zfill(2) + ".tif"
 
@@ -102,6 +95,74 @@ if __name__ == '__main__':
 
         # save_preprocessed_radiograph(img_pro, num_img)
 
+
+def create_combined_segmentation():
+    for idx_segmentation in range(1, 15):  # 1 - 14
+        list_segmentation = []
+        for idx_incisor in range(1, 9):  # 1 - 8
+            file_path = "Project_Data/_Data/Segmentations/" \
+                        + str(idx_segmentation).zfill(2) \
+                        + "-" + str(idx_incisor - 1) + ".png"
+            img_segmentation = cv2.imread(file_path, 0)
+            list_segmentation.append(img_segmentation)
+
+        combined_segmentation = np.zeros_like(list_segmentation[0])
+        for idx_incisor in range(len(list_segmentation)):
+            combined_segmentation += list_segmentation[idx_incisor]
+
+        plt.figure()
+        plt.imshow(combined_segmentation, cmap='gray', interpolation='bicubic')
+        plt.show()
+        # plt.waitforbuttonpress()
+
+        dir_path = "Project_Data/_Data/Segmentations_Combined"
+        file_name = "/" + str(idx_segmentation).zfill(2) + ".tif"
+        myLib.ensure_dir(dir_path)
+        cv2.imwrite(dir_path + file_name, combined_segmentation)
+
+
+def create_preprocessed_segmentations():
+    for num_img in range(1, 15):
+        path_radiograph = "Project_Data/_Data/Segmentations_Combined/" + str(num_img).zfill(2) + ".tif"
+
+        img_org = cv2.imread(path_radiograph, 0)
+        img_pro = preprocess_radiograph(img_org)
+
+        plt.figure()
+        plt.imshow(img_org, cmap='gray', interpolation='bicubic')
+        myLib.move_figure('top-right')
+        plt.title('Original')
+        plt.show()
+
+        plt.figure()
+        plt.imshow(img_pro, cmap='gray', interpolation='bicubic')
+        myLib.move_figure('bottom-right')
+        plt.title('Original')
+        plt.show()
+
+        # plt.waitforbuttonpress()
+        plt.close('all')
+
+        save_preprocessed_segmentation(img_pro, num_img)
+
+
+def save_preprocessed_segmentation(img, idx_segmentation):
+    dir_path = "Project_Data/_Data/Segmentations_Preprocessed"
+    file_name = "/" + str(idx_segmentation).zfill(2) + ".tif"
+    myLib.ensure_dir(dir_path)
+    cv2.imwrite(dir_path + file_name, img)
+
+if __name__ == '__main__':
+    os.chdir(os.path.dirname(sys.argv[0]))
+    warnings.filterwarnings("ignore", ".*GUI is implemented.*")
+    matplotlib.interactive(True)
+
+    print("---------------------------")
+    print("Start of the script")
+
+    # create_preprocessed_radiographs()
+    # create_combined_segmentation()
+    # create_preprocessed_segmentations()
 
     print "\nClick to finish process..."
     plt.waitforbuttonpress()

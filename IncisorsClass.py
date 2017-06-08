@@ -30,12 +30,13 @@ class IncisorShape(ObjectShape):
         landmarks = np.roll(landmarks, 5, axis=1)
 
         self.path_radiograph = "Project_Data/_Data/Radiographs_Preprocessed/" + str(num_img).zfill(2) + ".tif"
+        # self.path_radiograph = "Project_Data/_Data/Segmentations_Preprocessed/" + str(num_img).zfill(2) + ".tif"
         img_radiograph = cv2.imread(self.path_radiograph, 0)
 
         self.path_segmentation = "Project_Data/_Data/Segmentations/" + str(num_img).zfill(2) + "-" + str(num_tth - 1) + ".png"
         img_segmentation = cv2.imread(self.path_segmentation, 0)
 
-        ObjectShape.__init__(self, landmarks, img_segmentation, k=4, levels=levels)
+        ObjectShape.__init__(self, landmarks, img_radiograph, k=4, levels=levels)
         del points
         del landmarks
 
