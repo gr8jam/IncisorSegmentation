@@ -66,5 +66,3 @@ b = np.array([1, -1, 0])
 # multi[1, 0, 0] = 1
 #
 # print multi[:,:,:]
-
-if True: print "Hello"

@@ -9,8 +9,6 @@ import myLib
 import warnings
 
 from ObjectShapeClass import ObjectShape
-from ObjectShapeClass import create_shapes
-from ShapeViewerClass import ShapesViewer
 from IncisorsClass import load_incisors
 from ProcrustesAnalysis import procrustes_analysis
 from ProcrustesAnalysis import procrustes_alignment
@@ -21,22 +19,22 @@ from profiles import get_profile_intensity_mean
 from ImagePreprocessing import preprocess_radiograph
 
 
-class ShapeModelHandle:
-    def __init__(self):
-        self.lm_org = plt.plot([], [], color='b', marker='.', markersize=5)[0]
-        self.border = plt.plot([], [], color='b', linestyle='-', linewidth=1)[0]
-        self.center = plt.plot([], [], color='b', marker='.', markersize=6)[0]
-
-        self.profile = plt.plot([], [], color='c', marker='.', markersize=5, linestyle=' ')[0]
-        self.start = plt.plot([], [], color='r', marker='.', markersize=8)[0]
-
-
-class ShapeTargetHandle:
-    def __init__(self):
-        self.lm_org = plt.plot([], [], color='g', marker='.', markersize=5)[0]
-        self.border = plt.plot([], [], color='g', linestyle='-', linewidth=0.21)[0]
-        self.center = plt.plot([], [], color='g', marker='.', markersize=6)[0]
-        self.profile = plt.plot([], [], color='g', marker='.', markersize=5)[0]
+# class ShapeModelHandle:
+#     def __init__(self):
+#         self.lm_org = plt.plot([], [], color='b', marker='.', markersize=5)[0]
+#         self.border = plt.plot([], [], color='b', linestyle='-', linewidth=1)[0]
+#         self.center = plt.plot([], [], color='b', marker='.', markersize=6)[0]
+#
+#         self.profile = plt.plot([], [], color='c', marker='.', markersize=5, linestyle=' ')[0]
+#         self.start = plt.plot([], [], color='r', marker='.', markersize=8)[0]
+#
+#
+# class ShapeTargetHandle:
+#     def __init__(self):
+#         self.lm_org = plt.plot([], [], color='g', marker='.', markersize=5)[0]
+#         self.border = plt.plot([], [], color='g', linestyle='-', linewidth=0.21)[0]
+#         self.center = plt.plot([], [], color='g', marker='.', markersize=6)[0]
+#         self.profile = plt.plot([], [], color='g', marker='.', markersize=5)[0]
 
 
 class ActiveShapeModel:
@@ -45,7 +43,7 @@ class ActiveShapeModel:
         self.img = np.copy(img)
 
         self.shape_ref = procrustes_analysis(shapes_list, visualization=False)
-        eigenval, eigenvec, lm_mu = principal_component_analysis(shapes_list, self.shape_ref, 15)
+        eigenval, eigenvec, lm_mu = principal_component_analysis(shapes_list, self.shape_ref, 10)
         self.eigenvalues = eigenval
         self.eigenvectors = eigenvec
         self.profile_intensity_mean = get_profile_intensity_mean(shapes_list)
@@ -53,7 +51,7 @@ class ActiveShapeModel:
         self.current_level = levels - 1
 
         lm_model = (self.shape_ref.lm_org - self.shape_ref.center + self.init_center).astype(np.int)
-        self.shape_model = ObjectShape(lm_model, self.img, k=10, levels=self.current_level + 1)
+        self.shape_model = ObjectShape(lm_model, self.img, k=8, levels=self.current_level + 1)
         self.shape_target = None
 
         self.b = np.zeros_like(self.eigenvalues)
@@ -62,8 +60,8 @@ class ActiveShapeModel:
         myLib.move_figure('right')
         plt.imshow(self.shape_model.img, cmap='gray', interpolation='bicubic')
         plt.plot(self.init_center[0, 0], self.init_center[1, 0], color='r', marker='.', markersize=5)
-        self.handle_model = ShapeModelHandle()
-        self.handle_target = ShapeTargetHandle()
+        # self.handle_model = ShapeModelHandle()
+        # self.handle_target = ShapeTargetHandle()
         self.update_figure()
 
         # self.update_target_points()
@@ -74,49 +72,113 @@ class ActiveShapeModel:
         # self.update_figure()
         # plt.waitforbuttonpress()
 
+        # plt.waitforbuttonpress()
+        # self.active_shape_model_algorithm()
+
         plt.waitforbuttonpress()
-        self.active_shape_model_algorithm()
+        self.multi_resolution_search()
+        self.update_target_points()
+
+    def multi_resolution_search(self):
+        while self.current_level >= 0:
+            print self.current_level
+            self.active_shape_model_algorithm()
+            self.current_level -= 1
+            # plt.waitforbuttonpress()
 
     def active_shape_model_algorithm(self):
-        for i in range(15):
+        for i in range(5):
             self.update_target_points()
             self.match_model_to_target()
             self.update_figure()
-            plt.waitforbuttonpress()
+            # plt.waitforbuttonpress()
 
     def match_model_to_target(self):
 
         b = self.b * 0
         b_old = np.copy(b)
 
-        print "b"
-        print b
+        # print "b"
+        # print b
 
         max_iter = 2
         num_iter = 0
 
         while True:
-            self.update_figure()
+            # self.update_figure()
             # plt.waitforbuttonpress()
 
             b = project_shape_to_principal_components_space(self.shape_target, self.shape_ref, self.eigenvectors)
+
+            limit = 2
+            for idx, param in enumerate(b):
+                if b[idx] > limit * np.sqrt(self.eigenvalues[idx]):
+                    b[idx] = limit * np.sqrt(self.eigenvalues[idx])
+                elif b[idx] < -limit * np.sqrt(self.eigenvalues[idx]):
+                    b[idx] = -limit * np.sqrt(self.eigenvalues[idx])
 
             shape_new_model = reconstruct_shape_object(self.shape_ref, self.eigenvectors, b)
             theta = shape_new_model.get_landmarks_theta(self.shape_target.lm_loc)
             lm_model = np.dot(myLib.getRotMatrix(theta), shape_new_model.lm_loc)
             lm_model = lm_model * self.shape_target.scale + self.shape_target.center
-            self.shape_model = ObjectShape(lm_model, self.img, k=10, levels=self.current_level + 1)
+            self.shape_model = ObjectShape(lm_model, self.img, k=8, levels=self.current_level + 1)
 
             procrustes_alignment([self.shape_model], self.shape_target)
             lm_new = self.shape_model.lm_loc * self.shape_target.scale + self.shape_target.center
-            self.shape_model = ObjectShape(lm_new, self.img, k=10, levels=self.current_level + 1)
+            self.shape_model = ObjectShape(lm_new, self.img, k=8, levels=self.current_level + 1)
 
             b_change = b - b_old
             b_old = np.copy(b)
-            print b_change
+            # print b_change
 
             if np.sum(b_change) < 1e-10:
-                print "Out"
+                # print "Out"
+                break
+
+            num_iter += 1
+            if num_iter > max_iter:
+                break
+
+    def match_model_to_target_2(self):
+
+        b = self.b * 0
+        b_old = np.copy(b)
+
+        # print "b"
+        # print b
+
+        max_iter = 2
+        num_iter = 0
+
+        while True:
+            # self.update_figure()
+            # plt.waitforbuttonpress()
+
+            b = project_shape_to_principal_components_space(self.shape_target, self.shape_ref, self.eigenvectors)
+
+            limit = 2
+            for idx, param in enumerate(b):
+                if b[idx] > limit * np.sqrt(self.eigenvalues[idx]):
+                    b[idx] = limit * np.sqrt(self.eigenvalues[idx])
+                elif b[idx] < -limit * np.sqrt(self.eigenvalues[idx]):
+                    b[idx] = -limit * np.sqrt(self.eigenvalues[idx])
+
+            shape_new_model = reconstruct_shape_object(self.shape_ref, self.eigenvectors, b)
+            theta = shape_new_model.get_landmarks_theta(self.shape_target.lm_loc)
+            lm_model = np.dot(myLib.getRotMatrix(theta), shape_new_model.lm_loc)
+            lm_model = lm_model * self.shape_target.scale + self.shape_target.center
+            self.shape_model = ObjectShape(lm_model, self.img, k=8, levels=self.current_level + 1)
+
+            procrustes_alignment([self.shape_model], self.shape_target)
+            lm_new = self.shape_model.lm_loc * self.shape_target.scale + self.shape_target.center
+            self.shape_model = ObjectShape(lm_new, self.img, k=8, levels=self.current_level + 1)
+
+            b_change = b - b_old
+            b_old = np.copy(b)
+            # print b_change
+
+            if np.sum(b_change) < 1e-10:
+                # print "Out"
                 break
 
             num_iter += 1
@@ -138,46 +200,64 @@ class ActiveShapeModel:
             idx_best_match = idx_min_error + (len_k - 1) / 2
             lm_target[:, idx_lm] = self.shape_model.profile_coordinates[:, idx_lm, idx_best_match, self.current_level]
 
-            # if (idx_lm > 7) and (idx_lm < 10):
-            #     self.show_profile_intensity_match(idx_lm, intensity_match, idx_min_error)
+            # if (idx_lm > 4) and (idx_lm < 6) and (self.current_level == 1):
+                # self.show_profile_intensity_match(idx_lm, intensity_match, idx_min_error)
 
         self.shape_target = ObjectShape(lm_target * (2**self.current_level))
 
     def update_figure(self):
         plt.figure(self.fig.number)
-        # plt.cla()
+        plt.cla()
+        plt.title("Level = " + str(self.current_level))
+
+        # Show image at current level
         plt.imshow(self.shape_model.img_pyr[self.current_level], cmap='gray', interpolation='bicubic')
-        plt.plot(self.init_center[0, 0] / (2 ** self.current_level), self.init_center[1, 0] / (2 ** self.current_level),
-                 color='r', marker='.', markersize=5)
 
-        # Update landmarks in coordinate system
-        self.handle_model.lm_org.set_xdata(self.shape_model.lm_org[0, :] / (2 ** self.current_level))
-        self.handle_model.lm_org.set_ydata(self.shape_model.lm_org[1, :] / (2 ** self.current_level))
+        # Plot initial position
+        plt.plot(self.init_center[0, 0] / (2 ** self.current_level),
+                 self.init_center[1, 0] / (2 ** self.current_level),
+                 color='r', marker='.', markersize=8)
 
-        # Update border
-        self.handle_model.border.set_xdata(self.shape_model.lm_org[0, :] / (2 ** self.current_level))
-        self.handle_model.border.set_ydata(self.shape_model.lm_org[1, :] / (2 ** self.current_level))
+        # Update model's profile coordinates
+        plt.plot(self.shape_model.profile_coordinates[0, :, :, self.current_level],
+                 self.shape_model.profile_coordinates[1, :, :, self.current_level],
+                 color='c', marker='.', markersize=5, linestyle=' ')
 
-        # Update first landmark position
-        self.handle_model.start.set_xdata(self.shape_model.lm_org[0, 0] / (2 ** self.current_level))
-        self.handle_model.start.set_ydata(self.shape_model.lm_org[1, 0] / (2 ** self.current_level))
+        # Draw model's center
+        plt.plot(self.shape_model.center[0, 0] / (2 ** self.current_level),
+                 self.shape_model.center[1, 0] / (2 ** self.current_level),
+                 color='b', marker='.', markersize=5)
 
-        # Update center
-        self.handle_model.center.set_xdata(self.shape_model.center[0, :] / (2 ** self.current_level))
-        self.handle_model.center.set_ydata(self.shape_model.center[1, :] / (2 ** self.current_level))
+        # Draw model's landmarks
+        plt.plot(self.shape_model.lm_org[0, :] / (2 ** self.current_level),
+                 self.shape_model.lm_org[1, :] / (2 ** self.current_level),
+                 color='b', marker='.', markersize=5)
 
-        # Update profile coordinates
-        self.handle_model.profile.set_xdata(self.shape_model.profile_coordinates[0, :, :, self.current_level])
-        self.handle_model.profile.set_ydata(self.shape_model.profile_coordinates[1, :, :, self.current_level])
+        # Draw model's first landmark
+        plt.plot(self.shape_model.lm_org[0, 0] / (2 ** self.current_level),
+                 self.shape_model.lm_org[1, 0] / (2 ** self.current_level),
+                 color='c', marker='.', markersize=8)
+
+        # Draw model's border
+        plt.plot(self.shape_model.lm_org[0, :] / (2 ** self.current_level),
+                 self.shape_model.lm_org[1, :] / (2 ** self.current_level),
+                 color='b', linestyle='-', linewidth=1)
 
         if not (self.shape_target is None):
-            self.handle_target.lm_org.set_xdata(self.shape_target.lm_org[0, :] / (2 ** self.current_level))
-            self.handle_target.lm_org.set_ydata(self.shape_target.lm_org[1, :] / (2 ** self.current_level))
+            # Draw target's landmarks
+            plt.plot(self.shape_target.lm_org[0, :] / (2 ** self.current_level),
+                     self.shape_target.lm_org[1, :] / (2 ** self.current_level),
+                     color='g', marker='.', markersize=5)
 
-            # Update center
-            self.handle_target.center.set_xdata(self.shape_target.center[0, :] / (2 ** self.current_level))
-            self.handle_target.center.set_ydata(self.shape_target.center[1, :] / (2 ** self.current_level))
+            # Draw target's first landmark
+            plt.plot(self.shape_target.lm_org[0, 0] / (2 ** self.current_level),
+                     self.shape_target.lm_org[1, 0] / (2 ** self.current_level),
+                     color='r', marker='.', markersize=8)
 
+            # Draw target's border
+            plt.plot(self.shape_target.lm_org[0, :] / (2 ** self.current_level),
+                     self.shape_target.lm_org[1, :] / (2 ** self.current_level),
+                     color='g', linestyle='-', linewidth=1)
 
         # recompute the axis limits
         window_margin = 150 / (2 ** self.current_level)
@@ -204,7 +284,7 @@ class ActiveShapeModel:
         plt.subplot(2, 1, 2)
         plt.plot(intensity_match)
         plt.show()
-        plt.waitforbuttonpress()
+        # plt.waitforbuttonpress()
         plt.close(fig_temp.number)
 
     def rigid_aligment(self, shape, shape_ref):
@@ -224,13 +304,13 @@ if __name__ == '__main__':
     print("Start of the script")
     fig_dummy = plt.figure()
 
-    num_levels = 2
+    num_levels = 4
     incisors = load_incisors([5], levels=num_levels)
     file_path = "Project_Data/_Data/Radiographs_Preprocessed/01.tif"
-    file_path = "Project_Data/_Data/Segmentations/" + str(1).zfill(2) + "-" + str(5 - 1) + ".png"
+    file_path = "Project_Data/_Data/Segmentations/" + str(2).zfill(2) + "-" + str(5 - 1) + ".png"
     img_radiograph = cv2.imread(file_path, 0)
     # img_radiograph = preprocess_radiograph(img_radiograph)
-    pos = np.array([[1400], [1150]])
+    pos = np.array([[1410], [1175]])
 
     asm = ActiveShapeModel(incisors, img_radiograph, pos, levels=num_levels)
 

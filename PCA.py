@@ -71,7 +71,7 @@ def create_training_set(shapes_list, shape_ref):
     for i, shape in enumerate(shapes_list):
         X[:, i] = shape.lm_loc.flatten()
 
-    X = X * shape_ref.scale
+    # X = X * shape_ref.scale
     return X
 
 

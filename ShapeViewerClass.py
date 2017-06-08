@@ -1,6 +1,6 @@
 from matplotlib import pyplot as plt
 import myLib
-
+import numpy as np
 
 class ShapeHandle:
     def __init__(self, shape_color='b'):
@@ -86,3 +86,18 @@ class ShapesViewer:
         for handle in self.handle_list:
             handle.profile.set_visible(visible)
 
+if __name__ == '__main__':
+    # os.chdir(os.path.dirname(sys.argv[0]))
+    # warnings.filterwarnings("ignore", ".*GUI is implemented.*")
+    # matplotlib.interactive(True)
+
+    print("---------------------------")
+    print("Start of the script")
+
+    A = np.arange(10)
+    limits = np.arange(10)
+    C = np.clip(A, limits - 1, limits + 1)
+
+    print "\nClick to finish process..."
+
+    print("==========================")

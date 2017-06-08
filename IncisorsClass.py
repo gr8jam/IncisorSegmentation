@@ -35,7 +35,7 @@ class IncisorShape(ObjectShape):
         self.path_segmentation = "Project_Data/_Data/Segmentations/" + str(num_img).zfill(2) + "-" + str(num_tth - 1) + ".png"
         img_segmentation = cv2.imread(self.path_segmentation, 0)
 
-        ObjectShape.__init__(self, landmarks, img_segmentation, k=5, levels=levels)
+        ObjectShape.__init__(self, landmarks, img_segmentation, k=4, levels=levels)
         del points
         del landmarks
 
