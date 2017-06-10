@@ -32,7 +32,9 @@ class ActiveShapeModel:
 
         self.current_level = levels - 1
 
-        lm_model = (self.shape_ref.lm_org - self.shape_ref.center + self.init_center).astype(np.int)
+        # lm_model = (self.shape_ref.lm_org - self.shape_ref.center + self.init_center).astype(np.int)
+        lm_model = (self.shape_ref.lm_org - self.shape_ref.center) / 1.30
+        lm_model = (lm_model + self.init_center).astype(np.int)
         self.shape_model = ObjectShape(lm_model, self.img, k=6, levels=self.current_level + 1)
         self.shape_target = None
 
@@ -263,11 +265,13 @@ if __name__ == '__main__':
 
     num_levels = 3
     incisors = load_incisors([5], levels=num_levels)
-    file_path = "Project_Data/_Data/Radiographs_Preprocessed/08.tif"
+
+    file_path = "Project_Data/_Data/Radiographs_Preprocessed/01.tif"
+    # file_path = "Project_Data/_Data/Radiographs/08.tif"
     # file_path = "Project_Data/_Data/Segmentations_Preprocessed/02.tif"
     img_radiograph = cv2.imread(file_path, 0)
     # img_radiograph = preprocess_radiograph(img_radiograph)
-    pos = np.array([[1400], [1005]])
+    pos = np.array([[1410], [1125]])
 
     asm = ActiveShapeModel(incisors, img_radiograph, pos, levels=num_levels)
 

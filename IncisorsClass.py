@@ -30,6 +30,7 @@ class IncisorShape(ObjectShape):
         landmarks = np.roll(landmarks, 5, axis=1)
 
         self.path_radiograph = "Project_Data/_Data/Radiographs_Preprocessed/" + str(num_img).zfill(2) + ".tif"
+        # self.path_radiograph = "Project_Data/_Data/Radiographs/" + str(num_img).zfill(2) + ".tif"
         # self.path_radiograph = "Project_Data/_Data/Segmentations_Preprocessed/" + str(num_img).zfill(2) + ".tif"
         img_radiograph = cv2.imread(self.path_radiograph, 0)
 
