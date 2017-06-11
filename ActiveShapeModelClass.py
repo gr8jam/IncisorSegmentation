@@ -20,7 +20,7 @@ from ImagePreprocessing import preprocess_radiograph
 
 
 class ActiveShapeModel:
-    def __init__(self, shapes_list, img, init_pos, levels):
+    def __init__(self, shapes_list, img, init_pos, levels, visualization='True'):
         self.init_center = np.copy(init_pos)
         self.img = np.copy(img)
 
@@ -39,12 +39,16 @@ class ActiveShapeModel:
         self.shape_target = None
 
         self.b = np.zeros_like(self.eigenvalues)
-        self.fig = plt.figure()
 
-        myLib.move_figure('right')
-        plt.imshow(self.shape_model.img, cmap='gray', interpolation='bicubic')
-        plt.plot(self.init_center[0, 0], self.init_center[1, 0], color='r', marker='.', markersize=5)
-        self.update_figure()
+        self.visualization = visualization
+        if self.visualization:
+            self.fig = plt.figure()
+            myLib.move_figure('right')
+            plt.imshow(self.shape_model.img, cmap='gray', interpolation='bicubic')
+            plt.plot(self.init_center[0, 0], self.init_center[1, 0], color='r', marker='.', markersize=5)
+            self.update_figure()
+            message = 'Initial estimation shown. Press key to start the search...'
+            self.pause_and_show_figure_message(message)
 
         # self.update_target_points()
         # self.update_figure()
@@ -57,16 +61,19 @@ class ActiveShapeModel:
         # plt.waitforbuttonpress()
         # self.active_shape_model_algorithm()
 
-        plt.waitforbuttonpress()
+
         self.multi_resolution_search()
         self.update_target_points()
 
+    def get_active_shape_model_landmarks(self):
+        return self.shape_model.lm_org
+
     def multi_resolution_search(self):
         while self.current_level >= 0:
-            print self.current_level
             self.active_shape_model_algorithm()
             self.current_level -= 1
-            plt.waitforbuttonpress()
+            message = 'Search on level ' + str(self.current_level) + ' complete. Press key to continue...'
+            self.pause_and_show_figure_message(message)
         self.current_level = 0
 
     def active_shape_model_algorithm(self):
@@ -74,7 +81,8 @@ class ActiveShapeModel:
             self.update_target_points()
             self.match_model_to_target()
             self.update_figure()
-            # plt.waitforbuttonpress()
+            message = 'Active shape model iteration complete. Press key to continue...'
+            self.pause_and_show_figure_message(message)
 
     def match_model_to_target(self):
 
@@ -133,7 +141,6 @@ class ActiveShapeModel:
 
                 intensity_similarity[idx_k] = np.sum(inner_product)
 
-
                 # if (idx_lm > 0) and (idx_lm < 2):
                 #     plt.figure()
                 #     plt.title('shift = ' + str(idx_k))
@@ -143,7 +150,7 @@ class ActiveShapeModel:
                 #     plt.waitforbuttonpress()
                 #     # plt.close()
 
-            idx_min_error = np.argmin(intensity_match)
+            # idx_min_error = np.argmin(intensity_match)
             idx_min_error = np.argmax(intensity_similarity)
 
             idx_best_match = idx_min_error + (len_k - 1) / 2
@@ -158,70 +165,71 @@ class ActiveShapeModel:
         self.update_figure()
 
     def update_figure(self):
-        plt.figure(self.fig.number)
-        plt.cla()
-        plt.title("Level = " + str(self.current_level))
+        if self.visualization:
+            plt.figure(self.fig.number)
+            plt.cla()
+            # plt.title("Level = " + str(self.current_level))
 
-        # Show image at current level
-        plt.imshow(self.shape_model.img_pyr[self.current_level], cmap='gray', interpolation='bicubic')
+            # Show image at current level
+            plt.imshow(self.shape_model.img_pyr[self.current_level], cmap='gray', interpolation='bicubic')
 
-        # Plot initial position
-        plt.plot(self.init_center[0, 0] / (2 ** self.current_level),
-                 self.init_center[1, 0] / (2 ** self.current_level),
-                 color='r', marker='.', markersize=8)
-
-        # Update model's profile coordinates
-        plt.plot(self.shape_model.profile_coordinates[0, :, :, self.current_level],
-                 self.shape_model.profile_coordinates[1, :, :, self.current_level],
-                 color='c', marker='.', markersize=5, linestyle=' ')
-
-        # Draw model's center
-        plt.plot(self.shape_model.center[0, 0] / (2 ** self.current_level),
-                 self.shape_model.center[1, 0] / (2 ** self.current_level),
-                 color='b', marker='.', markersize=5)
-
-        # Draw model's landmarks
-        plt.plot(self.shape_model.lm_org[0, :] / (2 ** self.current_level),
-                 self.shape_model.lm_org[1, :] / (2 ** self.current_level),
-                 color='b', marker='.', markersize=5)
-
-        # Draw model's first landmark
-        plt.plot(self.shape_model.lm_org[0, 12] / (2 ** self.current_level),
-                 self.shape_model.lm_org[1, 12] / (2 ** self.current_level),
-                 color='m', marker='.', markersize=8)
-
-        # Draw model's border
-        plt.plot(self.shape_model.lm_org[0, :] / (2 ** self.current_level),
-                 self.shape_model.lm_org[1, :] / (2 ** self.current_level),
-                 color='b', linestyle='-', linewidth=1)
-
-        if not (self.shape_target is None):
-            # Draw target's landmarks
-            plt.plot(self.shape_target.lm_org[0, :] / (2 ** self.current_level),
-                     self.shape_target.lm_org[1, :] / (2 ** self.current_level),
-                     color='g', marker='.', markersize=5)
-
-            # Draw target's first landmark
-            plt.plot(self.shape_target.lm_org[0, 0] / (2 ** self.current_level),
-                     self.shape_target.lm_org[1, 0] / (2 ** self.current_level),
+            # Plot initial position
+            plt.plot(self.init_center[0, 0] / (2 ** self.current_level),
+                     self.init_center[1, 0] / (2 ** self.current_level),
                      color='r', marker='.', markersize=8)
 
-            # Draw target's border
-            plt.plot(self.shape_target.lm_org[0, :] / (2 ** self.current_level),
-                     self.shape_target.lm_org[1, :] / (2 ** self.current_level),
-                     color='g', linestyle='-', linewidth=1)
+            # Update model's profile coordinates
+            plt.plot(self.shape_model.profile_coordinates[0, :, :, self.current_level],
+                     self.shape_model.profile_coordinates[1, :, :, self.current_level],
+                     color='c', marker='.', markersize=5, linestyle=' ')
 
-        # recompute the axis limits
-        window_margin = 350 / (2 ** self.current_level)
-        x_max = self.init_center[0, 0] / (2 ** self.current_level) + window_margin
-        x_min = self.init_center[0, 0] / (2 ** self.current_level) - window_margin
-        y_max = self.init_center[1, 0] / (2 ** self.current_level) + window_margin
-        y_min = self.init_center[1, 0] / (2 ** self.current_level) - window_margin
+            # Draw model's center
+            plt.plot(self.shape_model.center[0, 0] / (2 ** self.current_level),
+                     self.shape_model.center[1, 0] / (2 ** self.current_level),
+                     color='b', marker='.', markersize=5)
 
-        axes = plt.gca()
-        axes.set_xlim([x_min, x_max])
-        axes.set_ylim([y_max, y_min])
-        plt.show()
+            # Draw model's landmarks
+            plt.plot(self.shape_model.lm_org[0, :] / (2 ** self.current_level),
+                     self.shape_model.lm_org[1, :] / (2 ** self.current_level),
+                     color='b', marker='.', markersize=5)
+
+            # Draw model's first landmark
+            plt.plot(self.shape_model.lm_org[0, 12] / (2 ** self.current_level),
+                     self.shape_model.lm_org[1, 12] / (2 ** self.current_level),
+                     color='m', marker='.', markersize=8)
+
+            # Draw model's border
+            plt.plot(self.shape_model.lm_org[0, :] / (2 ** self.current_level),
+                     self.shape_model.lm_org[1, :] / (2 ** self.current_level),
+                     color='b', linestyle='-', linewidth=1)
+
+            if not (self.shape_target is None):
+                # Draw target's landmarks
+                plt.plot(self.shape_target.lm_org[0, :] / (2 ** self.current_level),
+                         self.shape_target.lm_org[1, :] / (2 ** self.current_level),
+                         color='g', marker='.', markersize=5)
+
+                # Draw target's first landmark
+                plt.plot(self.shape_target.lm_org[0, 0] / (2 ** self.current_level),
+                         self.shape_target.lm_org[1, 0] / (2 ** self.current_level),
+                         color='r', marker='.', markersize=8)
+
+                # Draw target's border
+                plt.plot(self.shape_target.lm_org[0, :] / (2 ** self.current_level),
+                         self.shape_target.lm_org[1, :] / (2 ** self.current_level),
+                         color='g', linestyle='-', linewidth=1)
+
+            # recompute the axis limits
+            window_margin = 350 / (2 ** self.current_level)
+            x_max = self.init_center[0, 0] / (2 ** self.current_level) + window_margin
+            x_min = self.init_center[0, 0] / (2 ** self.current_level) - window_margin
+            y_max = self.init_center[1, 0] / (2 ** self.current_level) + window_margin
+            y_min = self.init_center[1, 0] / (2 ** self.current_level) - window_margin
+
+            axes = plt.gca()
+            axes.set_xlim([x_min, x_max])
+            axes.set_ylim([y_max, y_min])
+            plt.show()
 
     def show_profile_intensity_match(self, lm_idx, intensity_match, idx_min_error):
         fig_temp = plt.figure()
@@ -246,12 +254,11 @@ class ActiveShapeModel:
         plt.waitforbuttonpress()
         plt.close(fig_temp.number)
 
-    def rigid_aligment(self, shape, shape_ref):
-        shape.set_landmarks_theta(shape_ref.lm_loc)
-        lm_new = shape.lm_loc
-        lm_new = lm_new + shape_ref.scale
-        lm_new = lm_new + shape_ref.center
-        return lm_new
+    def pause_and_show_figure_message(self, title=''):
+        if self.visualization:
+            plt.figure(self.fig.number)
+            plt.title(title)
+            plt.waitforbuttonpress()
 
 
 if __name__ == '__main__':

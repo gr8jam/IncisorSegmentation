@@ -22,11 +22,11 @@ def procrustes_alignment(shapes_list, shape_ref):
 
 def procrustes_analysis(shapes_list, visualization=True):
     # Arbitrarily choose a reference shape (typically by selecting it among the available instances)
-    np.random.seed(3)
-    idx = np.random.randint(0, len(shapes_list))
-    idx = 3
+    # np.random.seed(3)
+    # idx = np.random.randint(0, len(shapes_list))
+    idx = 9
 
-    print "idx = " + str(idx)
+    # print "idx = " + str(idx)
     shape_ref = ObjectShape(shapes_list[idx].lm_org, shapes_list[idx].img)
     # print "r = " + str(shape_ref.num_image)
     # print "t = " + str(shape_ref.num_tooth)
@@ -38,8 +38,6 @@ def procrustes_analysis(shapes_list, visualization=True):
         shapes_viewer.update_shapes_ref()
         for shape_idx in range(len(shapes_list)):
             shapes_viewer.update_shape_idx(shape_idx)
-        plt.waitforbuttonpress(0.5)
-        # plt.waitforbuttonpress()
 
     # shape_mean = ObjectShape(np.zeros_like(shape_ref.lm_loc))
 
@@ -66,7 +64,8 @@ def procrustes_analysis(shapes_list, visualization=True):
 
         # Compute square distance change of mean shape
         ssdc = np.sum(np.square(shape_ref.lm_org - lm_mean))
-        print "sum of square distance change: " + str(ssdc)
+        if visualization:
+            print "sum of square distance change: " + str(ssdc)
 
         # Update reference shape
         shape_ref.lm_org = shape_mean.lm_org
@@ -80,12 +79,14 @@ def procrustes_analysis(shapes_list, visualization=True):
 
         # End loop if sum of square distance change of mean shape is under certain threshold
         if ssdc < 1e-8:
-            print("Procrustes analysis finished. Square distance change of mean shape was under certain threshold.")
+            if visualization:
+                print("Procrustes analysis finished. Square distance change of mean shape was under certain threshold.")
             break
 
         # End loop if number of iteration exceeds maximum number of allowed iterations
         if iteration_cnt >= iteration_max:
-            print("Procrustes analysis finished. Number of iteration exceeded the maximum allowed iterations.")
+            if visualization:
+                print("Procrustes analysis finished. Number of iteration exceeded the maximum allowed iterations.")
             break
         iteration_cnt = iteration_cnt + 1
 
@@ -134,7 +135,7 @@ if __name__ == '__main__':
     plt.close('all')
 
     myLib.tic()
-    incisor_idx = 5
+    incisor_idx = 1
     incisors = load_incisors([incisor_idx])
     myLib.toc()
 

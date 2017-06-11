@@ -2,56 +2,78 @@ import cv2
 import numpy as np
 import os
 import sys
+import warnings
 from matplotlib import pyplot as plt
-
+import matplotlib
 import myLib
 
-from IncisorsClass import IncisorShape
+from IncisorsClass import load_incisors
+from ActiveShapeModelClass import ActiveShapeModel
+from ImagePreprocessing import preprocess_radiograph
+from PointSelectorClass import PointSelector
+
+
+def outline_incisor(img_radiograph, incisors_idx, init_position):
+    # Prepare training set
+    num_levels = 3
+    incisors = load_incisors([incisors_idx], levels=num_levels)
+
+    # Find the incisors landmarks
+    asm = ActiveShapeModel(incisors, img_radiograph, init_position, levels=num_levels, visualization=False)
+    landmarks = asm.get_active_shape_model_landmarks()
+    return landmarks
+
 
 if __name__ == '__main__':
     os.chdir(os.path.dirname(sys.argv[0]))
-    # print(os.path.dirname(sys.argv[0]))
-    # print(os.path.dirname(os.path.realpath(__file__)))
+    warnings.filterwarnings("ignore", ".*GUI is implemented.*")
+    matplotlib.interactive(True)
 
-    print '-----------------------------------'
-    print 'Start of the script'
+    print("---------------------------")
+    print("Start of the script")
 
-    plt.close('all')
-    plt.interactive(False)
+    # Import picture to be examined
+    file_path = "Project_Data/_Data/Radiographs/extra/20.tif"
+    img_radiograph = cv2.imread(file_path, 0)
+    img_radiograph = preprocess_radiograph(img_radiograph)
 
-    # incisor = IncisorShape(2, 8)
-    # incisor.show_radiograph(np.array([800, 200]))
-    #
-    # plt.waitforbuttonpress()
-    # exit()
+    # Show picture and select initial position of incisor
+    fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    myLib.move_figure(manual_position=[100, 50, 1300, 900])
+    plt.imshow(img_radiograph, cmap='gray')
+    axes = plt.gca()
+    axes.set_xlim([600, 2400])
+    axes.set_ylim([1400, 400])
+    plt.show()
 
-    incisors = []
+    for incisor_idx in range(1, 9):
+        plt.figure(fig.number)
+        message = "\nClick on incisor (idx = " + str(incisor_idx) + ") to estimate initial position..."
+        print message
+        plt.title(message)
 
-    coord_x = 0
-    coord_y = 20
+        point_selector = PointSelector(fig)
+        init_pos = point_selector.get_point()
+        message = "Initial position selected. x = " + str(init_pos[0, 0]) + " , y = " + str(init_pos[1, 0])
+        plt.title(message)
+        print message
 
-    figCnt = 0
-    # Load data from files
-    for idx_radiograph in range(1, 8):
-        for idx_tooth in range(1, 5):
-            # plt.close('all')
-            incisors.append(IncisorShape(idx_radiograph, idx_tooth))
-            if figCnt < 20:
-                coord_x = 5 + coord_x + incisors[-1].show_radiograph(np.array([coord_x, coord_y])) / 1.2
-                figCnt = figCnt + 1
-                # plt.waitforbuttonpress()
-                if coord_x > 1400:
-                    coord_x = 0
-                    coord_y = coord_y + 300
+        # Find initial position
+        # TODO: Marcel put you algorithm here
+        #
+        landmarks = outline_incisor(img_radiograph, incisor_idx, init_pos)
 
-                # incisors[-1].showSegmentation()
+        message = "Active shape model algorithm finished."
+        plt.title(message)
+        print message
 
-                # print incisors[-1].landmarks[0,:]
-                # print incisors[-1].landmarks[1,:]
+        # Show the results
+        plt.figure(fig.number)
+        # plt.plot(landmarks[0, :], landmarks[1, :], color='r', marker='.', markersize=8)
+        plt.plot(landmarks[0, :], landmarks[1, :], color='b', linestyle='-', linewidth=2)
 
-                # plt.waitforbuttonpress()
+    print "\nClick to finish process..."
     plt.waitforbuttonpress()
-    print("=====================================")
 
-
-
+    print("==========================")
