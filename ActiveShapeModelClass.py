@@ -17,7 +17,7 @@ from PCA import reconstruct_shape_object
 from PCA import project_shape_to_principal_components_space
 from profiles import get_profile_intensity_mean
 from ImagePreprocessing import preprocess_radiograph
-
+from PointSelectorClass import PointSelector
 
 class ActiveShapeModel:
     def __init__(self, shapes_list, img, init_pos, levels, visualization='True'):
@@ -35,7 +35,7 @@ class ActiveShapeModel:
         # lm_model = (self.shape_ref.lm_org - self.shape_ref.center + self.init_center).astype(np.int)
         lm_model = (self.shape_ref.lm_org - self.shape_ref.center) / 1.30
         lm_model = (lm_model + self.init_center).astype(np.int)
-        self.shape_model = ObjectShape(lm_model, self.img, k=6, levels=self.current_level + 1)
+        self.shape_model = ObjectShape(lm_model, self.img, k=5, levels=self.current_level + 1)
         self.shape_target = None
 
         self.b = np.zeros_like(self.eigenvalues)
@@ -48,6 +48,7 @@ class ActiveShapeModel:
             plt.plot(self.init_center[0, 0], self.init_center[1, 0], color='r', marker='.', markersize=5)
             self.update_figure()
             message = 'Initial estimation shown. Press key to start the search...'
+            # message = ""
             self.pause_and_show_figure_message(message)
 
         # self.update_target_points()
@@ -61,23 +62,25 @@ class ActiveShapeModel:
         # plt.waitforbuttonpress()
         # self.active_shape_model_algorithm()
 
-
         self.multi_resolution_search()
-        self.update_target_points()
+        # self.update_target_points()
 
     def get_active_shape_model_landmarks(self):
         return self.shape_model.lm_org
+
+    def get_active_shape_model_center(self):
+        return self.shape_model.center
 
     def multi_resolution_search(self):
         while self.current_level >= 0:
             self.active_shape_model_algorithm()
             self.current_level -= 1
-            message = 'Search on level ' + str(self.current_level) + ' complete. Press key to continue...'
+            message = 'Search on level ' + str(self.current_level+1) + ' complete. Press key to continue...'
             self.pause_and_show_figure_message(message)
         self.current_level = 0
 
     def active_shape_model_algorithm(self):
-        for i in range(5):
+        for i in range(7):
             self.update_target_points()
             self.match_model_to_target()
             self.update_figure()
@@ -181,22 +184,22 @@ class ActiveShapeModel:
             # Update model's profile coordinates
             plt.plot(self.shape_model.profile_coordinates[0, :, :, self.current_level],
                      self.shape_model.profile_coordinates[1, :, :, self.current_level],
-                     color='c', marker='.', markersize=5, linestyle=' ')
+                     color='c', marker='.', markersize=2, linestyle=' ')
 
             # Draw model's center
             plt.plot(self.shape_model.center[0, 0] / (2 ** self.current_level),
                      self.shape_model.center[1, 0] / (2 ** self.current_level),
-                     color='b', marker='.', markersize=5)
+                     color='b', marker='.', markersize=8)
 
             # Draw model's landmarks
             plt.plot(self.shape_model.lm_org[0, :] / (2 ** self.current_level),
                      self.shape_model.lm_org[1, :] / (2 ** self.current_level),
-                     color='b', marker='.', markersize=5)
+                     color='b', marker='.', markersize=1)
 
             # Draw model's first landmark
-            plt.plot(self.shape_model.lm_org[0, 12] / (2 ** self.current_level),
-                     self.shape_model.lm_org[1, 12] / (2 ** self.current_level),
-                     color='m', marker='.', markersize=8)
+            # plt.plot(self.shape_model.lm_org[0, 12] / (2 ** self.current_level),
+            #          self.shape_model.lm_org[1, 12] / (2 ** self.current_level),
+            #          color='m', marker='.', markersize=8)
 
             # Draw model's border
             plt.plot(self.shape_model.lm_org[0, :] / (2 ** self.current_level),
@@ -210,9 +213,9 @@ class ActiveShapeModel:
                          color='g', marker='.', markersize=5)
 
                 # Draw target's first landmark
-                plt.plot(self.shape_target.lm_org[0, 0] / (2 ** self.current_level),
-                         self.shape_target.lm_org[1, 0] / (2 ** self.current_level),
-                         color='r', marker='.', markersize=8)
+                # plt.plot(self.shape_target.lm_org[0, 0] / (2 ** self.current_level),
+                #          self.shape_target.lm_org[1, 0] / (2 ** self.current_level),
+                #          color='r', marker='.', markersize=8)
 
                 # Draw target's border
                 plt.plot(self.shape_target.lm_org[0, :] / (2 ** self.current_level),
@@ -220,7 +223,7 @@ class ActiveShapeModel:
                          color='g', linestyle='-', linewidth=1)
 
             # recompute the axis limits
-            window_margin = 350 / (2 ** self.current_level)
+            window_margin = 250 / (2 ** self.current_level)
             x_max = self.init_center[0, 0] / (2 ** self.current_level) + window_margin
             x_min = self.init_center[0, 0] / (2 ** self.current_level) - window_margin
             y_max = self.init_center[1, 0] / (2 ** self.current_level) + window_margin
@@ -229,6 +232,9 @@ class ActiveShapeModel:
             axes = plt.gca()
             axes.set_xlim([x_min, x_max])
             axes.set_ylim([y_max, y_min])
+            axes.xaxis.set_ticklabels([])
+            axes.yaxis.set_ticklabels([])
+            # plt.axis('off')
             plt.show()
 
     def show_profile_intensity_match(self, lm_idx, intensity_match, idx_min_error):
@@ -246,10 +252,14 @@ class ActiveShapeModel:
                  [0, np.max([np.max(self.profile_intensity_mean[lm_idx, :, self.current_level]),
                              np.max(self.shape_model.profile_intensity[lm_idx, :, self.current_level])])], 'r--')
 
-        plt.title("idx_lm = " + str(lm_idx))
+        # plt.title("idx_lm = " + str(lm_idx))
+        plt.title("Best alignment of intensity vectors")
+        # plt.grid('on')
 
         plt.subplot(2, 1, 2)
         plt.plot(intensity_match)
+        plt.title("Intensity match value for certain shift j")
+        plt.grid('on')
         plt.show()
         plt.waitforbuttonpress()
         plt.close(fig_temp.number)
@@ -268,22 +278,24 @@ if __name__ == '__main__':
 
     print("---------------------------")
     print("Start of the script")
-    fig_dummy = plt.figure()
 
-    num_levels = 3
-    incisors = load_incisors([5], levels=num_levels)
+    num_levels = 2
+    incisors = load_incisors([6], levels=num_levels)
 
-    file_path = "Project_Data/_Data/Radiographs_Preprocessed/01.tif"
+    file_path = "Project_Data/_Data/Radiographs/extra/20.tif"
     # file_path = "Project_Data/_Data/Radiographs/08.tif"
     # file_path = "Project_Data/_Data/Segmentations_Preprocessed/02.tif"
     img_radiograph = cv2.imread(file_path, 0)
-    # img_radiograph = preprocess_radiograph(img_radiograph)
-    pos = np.array([[1410], [1125]])
+    img_radiograph = preprocess_radiograph(img_radiograph)
+
+    # point_selector = PointSelector(fig)
+    # pos = point_selector.get_point()
+    pos = np.array([[1465], [1065]])
 
     asm = ActiveShapeModel(incisors, img_radiograph, pos, levels=num_levels)
 
+    plt.title("Click to exit.")
     print "\nClick to finish process..."
-    plt.figure(fig_dummy.number)
     plt.waitforbuttonpress()
 
     print("==========================")

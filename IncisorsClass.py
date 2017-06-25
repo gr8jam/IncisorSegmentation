@@ -37,7 +37,7 @@ class IncisorShape(ObjectShape):
         self.path_segmentation = "Project_Data/_Data/Segmentations/" + str(num_img).zfill(2) + "-" + str(num_tth - 1) + ".png"
         img_segmentation = cv2.imread(self.path_segmentation, 0)
 
-        ObjectShape.__init__(self, landmarks, img_radiograph, k=4, levels=levels)
+        ObjectShape.__init__(self, landmarks, img_radiograph, k=3, levels=levels)
         del points
         del landmarks
 
@@ -101,9 +101,9 @@ if __name__ == '__main__':
     figCnt = 0
     # Load data from files
     for idx_radiograph in range(7, 8):
-        for idx_tooth in range(1, 2):
+        for idx_tooth in range(1, 9):
             # plt.close('all')
-            incisors.append(IncisorShape(idx_radiograph, idx_tooth))
+            incisors.append(IncisorShape(idx_radiograph, idx_tooth, levels=1))
             if figCnt < 20:
                 coord_x = 5 + coord_x + incisors[-1].show_radiograph(np.array([coord_x, coord_y])) / 1.2
                 figCnt = figCnt + 1

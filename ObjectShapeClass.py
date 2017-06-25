@@ -127,6 +127,8 @@ class ObjectShape:
                 y = (np.linspace(y0[landmark], y1[landmark], 2 * self.k + 1))
                 profile_coordinates[0, landmark, :, level] = x.astype(np.int)
                 profile_coordinates[1, landmark, :, level] = y.astype(np.int)
+                # profile_coordinates[0, landmark, :, level] = x
+                # profile_coordinates[1, landmark, :, level] = y
         return profile_coordinates
 
     def get_profile_intensity(self):
@@ -141,7 +143,7 @@ class ObjectShape:
                 x = self.profile_coordinates[0, idx, :, level]
                 y = self.profile_coordinates[1, idx, :, level]
                 profile_intensity[idx, :, level] = self.img_pyr[level][y.astype(np.int), x.astype(np.int)]  # faster
-                # profile_intensity[idx, :] = map_coordinates(img_pyr[level], np.vstack((y, x))        # interpolation
+                # profile_intensity[idx, :, level] = map_coordinates(self.img_pyr[level], np.vstack((y, x)))       # interpolation
                 profile_sum = np.sum(profile_intensity[idx, :, level], axis=0)
                 if profile_sum == 0:
                     profile_sum = 1
@@ -157,8 +159,8 @@ class ObjectShape:
         lm_org_x = self.lm_org[0, :] / (2 ** level)
         lm_org_y = self.lm_org[1, :] / (2 ** level)
 
-        plt.plot(lm_org_x, lm_org_y, color='b', marker='.', markersize=15)  # landmarks
-        plt.plot(lm_org_x, lm_org_y, color='c', marker='.', markersize=15)  # start
+        plt.plot(lm_org_x, lm_org_y, color='b', marker='.', markersize=1)  # landmarks
+        plt.plot(lm_org_x, lm_org_y, color='b', marker='.', markersize=1)  # start
         plt.plot(lm_org_x, lm_org_y, color='b', linestyle='-', linewidth=1)  # border
         plt.plot(self.profile_coordinates[0, :, :, level], self.profile_coordinates[1, :, :, level],
                  color='c', marker='.', markersize=3, linestyle=' ')  # profile
@@ -219,6 +221,7 @@ if __name__ == '__main__':
 
     for i in range(len(shapes)):
         shapes[i].set_landmarks_theta(shape_ref.lm_loc)
+        # shapes[i].roll_lm_for_best_fit(shape_ref.lm_loc)
 
     shapes_viewer.update_shapes_all()
     shapes_viewer.update_shapes_ref()

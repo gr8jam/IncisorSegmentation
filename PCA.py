@@ -90,9 +90,9 @@ def project_shape_to_principal_components_space(shape, shape_mu, P):
 
 
 def show_modes(shape_mu, P, eigenvalues):
-    plt.figure()
+    figure_PCA = plt.figure()
     myLib.move_figure(position="right")
-    coef = np.array([-3, 0, 3])
+    coef = np.array([-2, 0, 2])
     for i in range(3):
         for j in range(3):
             b = np.zeros_like(eigenvalues)
@@ -102,11 +102,12 @@ def show_modes(shape_mu, P, eigenvalues):
             y = shape.lm_org[1, :]
             axis_num = (i * 3) + (j + 1)
             plt.subplot(3, 3, axis_num)
-            plt.plot(x, y, 'k.', markersize=6)
-            plt.plot(x, y, 'r--')
-            plt.title("b" + str(i) + " = " + str(coef[j]) + "*sqrt(e" + str(i) + ")")
-            plt.grid()
+            # plt.plot(x, y, 'k.', markersize=6)
+            plt.plot(x, y, 'b-', linewidth=2)
+            # plt.title("b" + str(i) + " = " + str(coef[j]) + "*sqrt(e" + str(i) + ")")
+            # plt.grid()
             plt.axis('equal')
+            # plt.axis('off')
             plt.show()
 
             # print "\nb:"
@@ -114,6 +115,8 @@ def show_modes(shape_mu, P, eigenvalues):
             # bb = project_shape_to_principal_components_space(shape, shape_mu, P)
             # print "\nbb:"
             # print bb
+
+    # myLib.save_figure(figure_PCA, "PCA")
 
 
 def save_PCA_results(directory_path, shape_name, shape_idx, eigenvectors, eigenvalues, mean):
@@ -137,7 +140,7 @@ if __name__ == '__main__':
 
     plt.close('all')
 
-    incisor_idx_list = np.arange(5, 6)
+    incisor_idx_list = np.arange(6, 7)
 
     for incisor_idx in incisor_idx_list:
         myLib.tic()
@@ -172,16 +175,16 @@ if __name__ == '__main__':
         # # print "\ndiff_mean:"
         # # print str(diff_mean)
         #
-        shape_viewer_mu = ShapesViewer([incisor_mu], incisor_ref)
-        shape_viewer_mu.update_shapes_ref()
-        shape_viewer_mu.update_shapes_all()
+        # shape_viewer_mu = ShapesViewer([incisor_mu], incisor_ref)
+        # shape_viewer_mu.update_shapes_ref()
+        # shape_viewer_mu.update_shapes_all()
 
         show_modes(incisor_mu, eigenvec, eigenval)
 
         # Save PCA
         dir_path = "Project_Data/_Data/PCA/"
         # save_PCA_results(dir_path, "incisor", incisor_idx, eigenvec, eigenval, lm_mu)
-    plt.figure()
+    # plt.figure()
     print "\nClick to finish process..."
     plt.waitforbuttonpress()
 

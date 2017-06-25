@@ -92,7 +92,7 @@ def procrustes_analysis(shapes_list, visualization=True):
 
     # axis_len_0 = 2  # DOF
     # axis_len_1 = len(shapes_list)
-    shape_centers_sum = np.zeros((2,1))
+    shape_centers_sum = np.zeros((2, 1))
     # shape_theta_sum = 0
     for idx_shape, shape in enumerate(shapes_list):
         shape.set_ssd(shape_ref.lm_loc)
@@ -134,26 +134,30 @@ if __name__ == '__main__':
 
     plt.close('all')
 
-    myLib.tic()
-    incisor_idx = 1
-    incisors = load_incisors([incisor_idx])
-    myLib.toc()
+    for incisor_idx in range(1, 9):
+        myLib.tic()
+        # incisor_idx = 7
+        incisors = load_incisors([incisor_idx])
+        myLib.toc()
 
-    # incisors = incisors[0:5]
+        # incisors = incisors[0:5]
 
-    # incisors = create_shapes(6)
+        # incisors = create_shapes(6)
 
-    incisor_ref = procrustes_analysis(incisors)
+        incisor_ref = procrustes_analysis(incisors)
 
-    incisors_good_fit, incisors_bad_fit = separate_good_bad_shape_fit(incisors)
+        incisors_good_fit, incisors_bad_fit = separate_good_bad_shape_fit(incisors)
 
-    shape_viewer_good = ShapesViewer(incisors_good_fit, incisor_ref, "good shapes")
-    shape_viewer_good.update_shapes_ref()
-    shape_viewer_good.update_shapes_all()
+        # shape_viewer_good = ShapesViewer(incisors_good_fit, incisor_ref, "good shapes")
+        # shape_viewer_good.update_shapes_ref()
+        # shape_viewer_good.update_shapes_all()
 
-    shape_viewer_bad = ShapesViewer(incisors_bad_fit, incisor_ref, "bad shapes")
-    shape_viewer_bad.update_shapes_ref()
-    shape_viewer_bad.update_shapes_all()
+        # shape_viewer_bad = ShapesViewer(incisors_bad_fit, incisor_ref, "bad shapes")
+        # shape_viewer_bad.update_shapes_ref()
+        # shape_viewer_bad.update_shapes_all()
+
+        # myLib.ensure_dir("Project_Data/_Data/Report_Figures")
+        # plt.savefig("Project_Data/_Data/Report_Figures/shape_model_" + str(incisor_idx) + ".png")
 
     print "Bad incisors and their ssd: "
     print_shapes_fit(incisors_bad_fit)

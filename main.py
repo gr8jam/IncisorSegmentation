@@ -15,13 +15,14 @@ from PointSelectorClass import PointSelector
 
 def outline_incisor(img_radiograph, incisors_idx, init_position):
     # Prepare training set
-    num_levels = 3
+    num_levels = 2
     incisors = load_incisors([incisors_idx], levels=num_levels)
 
     # Find the incisors landmarks
     asm = ActiveShapeModel(incisors, img_radiograph, init_position, levels=num_levels, visualization=False)
     landmarks = asm.get_active_shape_model_landmarks()
-    return landmarks
+    center = asm.get_active_shape_model_center()
+    return landmarks, center
 
 
 if __name__ == '__main__':
@@ -33,7 +34,8 @@ if __name__ == '__main__':
     print("Start of the script")
 
     # Import picture to be examined
-    file_path = "Project_Data/_Data/Radiographs/extra/20.tif"
+    radiograph_idx = 30
+    file_path = "Project_Data/_Data/Radiographs/extra/" + str(radiograph_idx) + ".tif"
     img_radiograph = cv2.imread(file_path, 0)
     img_radiograph = preprocess_radiograph(img_radiograph)
 
@@ -49,7 +51,7 @@ if __name__ == '__main__':
 
     for incisor_idx in range(1, 9):
         plt.figure(fig.number)
-        message = "\nClick on incisor (idx = " + str(incisor_idx) + ") to estimate initial position..."
+        message = "\nUse cursor and click in the center of incisor (with index = " + str(incisor_idx) + ")"
         print message
         plt.title(message)
 
@@ -59,10 +61,7 @@ if __name__ == '__main__':
         plt.title(message)
         print message
 
-        # Find initial position
-        # TODO: Marcel put you algorithm here
-        #
-        landmarks = outline_incisor(img_radiograph, incisor_idx, init_pos)
+        incisor_landmarks, incisor_center = outline_incisor(img_radiograph, incisor_idx, init_pos)
 
         message = "Active shape model algorithm finished."
         plt.title(message)
@@ -70,8 +69,16 @@ if __name__ == '__main__':
 
         # Show the results
         plt.figure(fig.number)
-        # plt.plot(landmarks[0, :], landmarks[1, :], color='r', marker='.', markersize=8)
-        plt.plot(landmarks[0, :], landmarks[1, :], color='b', linestyle='-', linewidth=2)
+        # plt.plot(incisor_landmarks[0, :], incisor_landmarks[1, :], color='r', marker='.', markersize=8)
+        plt.plot(incisor_landmarks[0, :], incisor_landmarks[1, :], color='b', linestyle='-', linewidth=2)
+        plt.plot(incisor_center[0, :], incisor_center[1, :], color='b', marker='.', markersize=8)
+        plt.plot(init_pos[0, :], init_pos[1, :], color='r', marker='.', markersize=8)
+
+    # plt.title("Click to save results.")
+    # print "Click to save results."
+    # plt.waitforbuttonpress()
+    # myLib.save_figure(fig, "result_" + str(radiograph_idx))
+    plt.title("Click to close figure.")
 
     print "\nClick to finish process..."
     plt.waitforbuttonpress()

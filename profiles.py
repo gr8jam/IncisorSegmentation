@@ -73,21 +73,24 @@ if __name__ == '__main__':
 
         incisor_idx = 5
 
-        for idx_landmark in range(0, 40, 6):
+        print "\nIntensity profile along boundary normals."
+        for idx_landmark in range(0, 40, 3):
             plt.close("all")
-            show_profile_coordinates_along_landmark(incisors[incisor_idx], idx_landmark, 0)
+            show_profile_coordinates_along_landmark(incisors[incisor_idx], idx_landmark, level=2)
             show_profile_intensity_mean_along_landmark(incisors_profile_intensity_mean, idx_landmark)
+            print "   Results for landmark number = " + str(idx_landmark) + ". Press button to continue..."
             plt.waitforbuttonpress()
 
         # shape_viewer = ShapesViewer([incisors[0]], incisors[0], "see profiles")
         # shape_viewer.update_shapes_all()
 
+        print "\nBoundary normals on different levels."
         for level in range(incisors[incisor_idx].levels):
             fig = plt.figure()
             myLib.move_figure("top-left")
             incisors[incisor_idx].show_shape(fig, level)
+            print "   Level = " + str(level) + ". Press button to continue..."
             plt.waitforbuttonpress()
-
 
     print "\nClick to finish process..."
     plt.waitforbuttonpress()

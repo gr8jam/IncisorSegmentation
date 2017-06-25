@@ -2,12 +2,13 @@ from matplotlib import pyplot as plt
 import myLib
 import numpy as np
 
+
 class ShapeHandle:
-    def __init__(self, shape_color='b'):
+    def __init__(self, shape_color='b', linewidth=1):
         # self.lm_org = None
-        self.lm_loc = plt.plot([], [], color=shape_color, marker='.', markersize=5)[0]
-        self.start = plt.plot([], [], color='c', marker='.', markersize=5)[0]
-        self.border = plt.plot([], [], color=shape_color, linestyle='-', linewidth=1)[0]
+        # self.lm_loc = plt.plot([], [], color=shape_color, marker='.', markersize=5, linestyle=' ')[0]
+        self.start = plt.plot([], [], color='c', marker='.', markersize=1, linestyle=' ')[0]
+        self.border = plt.plot([], [], color=shape_color, linestyle='-', linewidth=linewidth)[0]
 
         # self.lm_org = plt.plot([], [], color=shape_color, marker='.', markersize=5)[0]
         # self.lm_org_start = plt.plot([], [], color='c', marker='.', markersize=5)[0]
@@ -20,9 +21,9 @@ class ShapesViewer:
         # Configure figure with local shape
         self.fig_loc = plt.figure()
         self.axes = plt.gca()
-        myLib.move_figure('top-right')
+        myLib.move_figure('top-left')  # manual_position=[800, 100, 400, 800])
         plt.axis('equal')
-        plt.grid()
+        # plt.grid()
         plt.title(title)
 
         # Configure figure with original shape
@@ -35,15 +36,15 @@ class ShapesViewer:
             handle = ShapeHandle()
             self.handle_list.append(handle)
 
-        self.handle_ref = ShapeHandle('r')
+        self.handle_ref = ShapeHandle('r', linewidth=3)
         self.shapes_ref = shapes_ref
 
     def update_shape(self, handle, shape):
         s = shape.scale
         s = 1
         # Update landmarks in local coordinate system
-        handle.lm_loc.set_xdata(shape.lm_loc[0, :] * s)
-        handle.lm_loc.set_ydata(shape.lm_loc[1, :] * s)
+        # handle.lm_loc.set_xdata(shape.lm_loc[0, :] * s)
+        # handle.lm_loc.set_ydata(shape.lm_loc[1, :] * s)
 
         # Update border
         handle.border.set_xdata(shape.lm_loc[0, :] * s)
@@ -85,19 +86,3 @@ class ShapesViewer:
     def set_visible_profiles(self, visible=True):
         for handle in self.handle_list:
             handle.profile.set_visible(visible)
-
-if __name__ == '__main__':
-    # os.chdir(os.path.dirname(sys.argv[0]))
-    # warnings.filterwarnings("ignore", ".*GUI is implemented.*")
-    # matplotlib.interactive(True)
-
-    print("---------------------------")
-    print("Start of the script")
-
-    A = np.arange(10)
-    limits = np.arange(10)
-    C = np.clip(A, limits - 1, limits + 1)
-
-    print "\nClick to finish process..."
-
-    print("==========================")

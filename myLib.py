@@ -88,3 +88,13 @@ def toc():
         print "Elapsed time is " + str(time.time() - startTime_for_tictoc) + " seconds."
     else:
         print "Toc: start time not set"
+
+
+def save_figure(fig, name="new_figure"):
+    plt.figure(fig.number)
+    plt.axis('off')
+    plt.title("")
+    path = "Project_Data/_Data/Report_Figures/"
+    ensure_dir(path)
+    plt.savefig(path + name + ".png", bbox_inches='tight', pad_inches=0)
+    plt.axis('on')
