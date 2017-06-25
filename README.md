@@ -11,5 +11,5 @@ alt="IMAGE ALT TEXT HERE" width="426" height="240" border="10" /></a>
 
 
 ## More
-Plese find uploaded report for more thorough description of the project. 
+Plese find uploaded [Final_Report.pdf](https://github.com/matejjeglic/ComputerVision_FinalProject/blob/master/Final_Report.pdf) for more thorough description of the project. 
 
